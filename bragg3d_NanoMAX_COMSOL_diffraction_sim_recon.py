@@ -108,7 +108,7 @@ FOV = g.resolution * g.shape        #obs fov in the coordinate system reciprocal
 print( FOV)
 print( g.resolution)
 
-savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\date_str'
+savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\%s'%date_str
 
 if not os.path.exists(savepath):
     os.makedirs(savepath)
@@ -122,6 +122,7 @@ with open(savepath+'\\geometry.txt', 'w') as f:
     f.write('shape %d\n' % g.shape[0])
     f.close()
 
+a='change' 
 #%%
 #---------------------------------------------------------
 # Create a container for the object and define views based on scaning postions.
