@@ -62,7 +62,7 @@ from mpl_toolkits.mplot3d import Axes3D
 #import mayavi.mlab as mlab
 import scipy.interpolate as inter
 import sys
-sys.path.insert(0, r'C:\Users\Susanna\Documents\GitHub\simulated_nanodiffraction')
+sys.path.insert(0, r'C:\Users\Susanna\Documents\Simulations\scripts\simulated_nanodiffraction') #this doesnt work
 
 
 from read_COMSOL_data import rotate_data
@@ -215,7 +215,7 @@ zz = np.squeeze(zz)
 
 # define path to COMSOL data
 #path = 'C:/Users/Sanna/Documents/COMSOL/COMSOL_data/InGaP_middlesegment_variation/'
-#path = 'C:/Users/Sanna/Documents/COMSOL/COMSOL_data/'
+path = 'C:/Users/Sanna/Documents/COMSOL/COMSOL_data/'
 #path = 
 
 
@@ -251,8 +251,8 @@ elif uvw == 5:
     uvw_str = 'w'
 
 # load the data (coordinates [m] + displacement field [nm] in one coordinate)
-#file1 = np.loadtxt(path + sample +'.txt',skiprows=9, usecols = useThesecols)
-file1 = np.loadtxt( sample +'.txt',skiprows=9, usecols = useThesecols)
+file1 = np.loadtxt(path + sample +'.txt',skiprows=9, usecols = useThesecols)
+#file1 = np.loadtxt( sample +'.txt',skiprows=9, usecols = useThesecols)
 
 if domain == 3:
     # cut out the domain data 
@@ -399,6 +399,22 @@ def scatter_interpol():
     ax.set_xlabel('x [m]'); ax.set_ylabel('y [m]'); ax.set_zlabel('z [m]')
 #scatter_interpol()
 #%%
+#Calculate the strain
+#-----------------------------------------------------
+
+##InP_Qvect = 18543793660.27452
+
+displacement_slice = np.fliplr(interpol_data[int(g.shape[0]/2)].T)
+
+displacement_slice_NWlength = np.fliplr(interpol_data[int(g.shape[0]/2)].T)[75:100,143:153]
+
+# ska man använda den Q-vektor som sätts at theta, alltså det theta om mäts upp ~~8 deg istället för detta som motsvarar 10.54
+
+strain_dwdz2 = np.diff((displacement_slice ) , axis = 1, append=0) /dz
+strain_dwdz = np.gradient(displacement_slice , dz) 
+
+strain_dwdz_NWlength = np.gradient(displacement_slice_NWlength,dz)
+
 #-----------------------------------------------------
 # plot the strain
 #-----------------------------------------------------
@@ -408,29 +424,49 @@ def plot_strain():
     plt.imshow((interpol_data)[int(g.shape[0]/2)],cmap='jet', origin='lower')
     plt.colorbar()
     
-    xcut = int(interpol_data.shape[0]/2)
-    strain_xcut = np.diff(interpol_data[xcut] ,n=1, axis = 0) /g.resolution[1]
-    #mean_strain = np.nanmean(strain_xcut)
-    #rel_strain_xcut = 100*(strain_xcut - mean_strain)/mean_strain
-    
-    
-    plt.figure() 
-    plt.imshow(strain_xcut, cmap='jet', origin='lower',extent = [yy.min()*1E6,yy.max()*1E6, zz.min()*1E6,zz.max()*1E6])
-    plt.title('Strain')
-    plt.xlabel('y [um]')
-    plt.ylabel('z [um]')
-    plt.tight_layout()
+    dz2 = zz[0,256,1] - zz[0,255,0] # dont know why this is different from dz 
+    dy2 = yy[0,0,1] - yy[0,0,0]
+    plt.figure()
+    plt.title('2d slice of displacement')
+    shape6=displacement_slice_NWlength.shape
+    plt.imshow(displacement_slice_NWlength,cmap='jet', origin='lower', interpolation='none',extent=[0,dz2*1E6*shape6[1],0,dy2*1E6*shape6[0]])    
     plt.colorbar()
+    
+    plt.figure()
+    plt.title('2d slice of displacement')
+    shape5 = displacement_slice.shape
+    plt.imshow((displacement_slice),cmap='jet', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
+    plt.colorbar(orientation='horizontal')
+    
+    plt.figure()    
+    plt.imshow(100*strain_dwdz2,cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
+    #plt.imshow(100*strain_dwdz[1],cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
+    #plt.title('Strain calc with np.gradient [%]')
+    plt.title('Strain calc with np.diff [%]')
+    plt.xlabel('z [um]')
+    plt.ylabel('y [um]')
+    plt.tight_layout()
+    plt.colorbar(orientation='horizontal')
+    
+    plt.figure()    
+    plt.imshow(100*strain_dwdz_NWlength[1],cmap='RdBu_r', origin='lower', interpolation = 'none', extent = [0,dz2*1E6*shape6[1],0,dy2*1E6*shape6[0]])
+    plt.title('Strain [%]')
+    plt.xlabel('z [um]')
+    plt.ylabel('y [um]')
+    plt.tight_layout()
+    plt.colorbar(orientation='vertical')
+    
     
     plt.figure()
     # left, right, bottom, top = extent
     plt.title('Will look like an oval because pixel size is not the same')
     plt.imshow((interpol_data)[:,int(g.shape[1]/2)],cmap='jet', origin='lower',extent=[0,interpol_data.shape[2]*g.resolution[2],0,interpol_data.shape[0]*g.resolution[0] ])
-    print('Max/min displacemnet from interpolatde data is: ')
+    print('Max/min displacemnet from model is: ')
     print( np.nanmax(np.gradient(interpol_data)[1]))
     print( np.nanmin(np.gradient(interpol_data)[1]))
     
 plot_strain()
+
 
 #%%
 #-----------------------------------------------------
