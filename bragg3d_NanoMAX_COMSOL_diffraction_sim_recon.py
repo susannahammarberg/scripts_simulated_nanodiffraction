@@ -61,8 +61,9 @@ from matplotlib import ticker
 from mpl_toolkits.mplot3d import Axes3D
 #import mayavi.mlab as mlab
 import scipy.interpolate as inter
+import os
 import sys
-sys.path.insert(0, r'C:\Users\Susanna\Documents\GitHub\simulated_nanodiffraction')
+sys.path.insert(0, r'C:\Users\Susanna\Documents\Simulations\scripts\simulated_nanodiffraction') #this doesnt work
 
 
 from read_COMSOL_data import rotate_data
@@ -106,6 +107,20 @@ g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(1*1E-2, 55*1E-6, 55*1E-6), shape=
 FOV = g.resolution * g.shape        #obs fov in the coordinate system reciprocal to the natural one thus (q3q1q2)
 print( FOV)
 print( g.resolution)
+
+savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\date_str'
+
+if not os.path.exists(savepath):
+    os.makedirs(savepath)
+    print('new folder in this savepath was created')
+    
+with open(savepath+'\\geometry.txt', 'w') as f:
+    
+    f.write('distance %.4e\n' % g.distance)
+    f.write('energy %.4e\n' % g.energy)
+    f.write('psize %.4e\n' % g.psize[0])
+    f.write('shape %d\n' % g.shape[0])
+    f.close()
 
 #%%
 #---------------------------------------------------------
