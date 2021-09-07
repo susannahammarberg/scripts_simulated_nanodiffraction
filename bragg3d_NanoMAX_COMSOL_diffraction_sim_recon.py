@@ -810,7 +810,7 @@ pr.data *= np.sqrt(nbr_photons/np.sum(pr.data*pr.data.conj()))
 #field3d = nmutils.utils.propagateNearfield(Sprobe.data[0], g.psize, -100E-9, g.energy)
 
 # prepare in 3d
-probe_3d = G.prepare_3d_probe(pr, system='natural', layer=0)#NOTE usually its the input system you specify but here its the output. Also there is an autocenter 
+pr = G.prepare_3d_probe(pr, system='natural', layer=0)#NOTE usually its the input system you specify but here its the output. Also there is an autocenter 
 pr.fill(probe_3d) #not sure if this worked
 
 
@@ -827,23 +827,23 @@ r1_slice = int(g.shape[1]/2)
 r2_slice = int(g.shape[2]/2)
 
 fac1 = 1E6
-#plt.figure() #extent : scalars (left, right, bottom, top)
-##extent is checked
-#plt.suptitle('Central cut-plot from the 3d probe \n extruded from 2d probe in quasi vertical zi and y coord. psize=%f nm'%(Sloaded_probe_3d.psize[1]*1E9))
-#plt.subplot(121)
-##    ax[-1].imshow(np.mean(np.abs( views[i].data + (loaded_probeView.data/loaded_probeView.data.max()) ), axis=1), vmin=0, extent=[mufactor*r2.min(), mufactor*r2.max(), mufactor*r3.min(), mufactor*r3.max()])
-##    plt.setp(ax[-1], xlabel='r2 [um]', ylabel='r3', xlim=[mufactor*r2.min(), mufactor*r2.max()], ylim=[mufactor*r3.min(), mufactor*r3.max()], yticks=[])
-##    # diffraction
-#plt.imshow((abs(loaded_probeView.data[r3_slice])), extent=[-fac1*r2_slice*Sloaded_probe_3d.psize[2], fac1*r2_slice*Sloaded_probe_3d.psize[2], -fac1*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1],fac1*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1]], cmap='jet', interpolation='none')
-##plt.imshow(abs() extent=[-1E9*r2_slice*g.psize[2], 1E9*Sloaded_probe_3d.shape[3]/2*Sloaded_probe_3d.psize[2], -1E9*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1],1E9*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1]] ,cmap='jet', interpolation='none')
-#plt.xlabel('r2 [nm]'); plt.ylabel('r1 [nm]')#;plt.colorbar()
-#plt.title('Amplitude')
-#plt.subplot(122)
-##plt.imshow(np.angle(loaded_probeView.data[r3_slice]), extent=[-fac1*r2_slice*Sloaded_probe_3d.psize[2], fac1*r2_slice*Sloaded_probe_3d.psize[2], -fac1*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1],fac1*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1]], cmap='jet', interpolation='none')
-#plt.imshow(np.angle(loaded_probeView.data[r3_slice]))#, extent=[-fac1*r2_slice, fac1*r2_slice, -fac1*r1_slice,fac1*r1_slice], cmap='jet', interpolation='none')
-#plt.xlabel('r2 [nm]'); plt.ylabel('r1 [nm]')#;plt.colorbar()
-#plt.title('Phase')
-#plt.tight_layout()
+plt.figure() #extent : scalars (left, right, bottom, top)
+#extent is checked
+plt.suptitle('Central cut-plot from the 3d probe \n extruded from 2d probe in quasi vertical zi and y coord. psize=%f nm'%(Sloaded_probe_3d.psize[1]*1E9))
+plt.subplot(121)
+#    ax[-1].imshow(np.mean(np.abs( views[i].data + (loaded_probeView.data/loaded_probeView.data.max()) ), axis=1), vmin=0, extent=[mufactor*r2.min(), mufactor*r2.max(), mufactor*r3.min(), mufactor*r3.max()])
+#    plt.setp(ax[-1], xlabel='r2 [um]', ylabel='r3', xlim=[mufactor*r2.min(), mufactor*r2.max()], ylim=[mufactor*r3.min(), mufactor*r3.max()], yticks=[])
+#    # diffraction
+plt.imshow((abs(np.squeeze(pr.data)[r3_slice])), extent=[-fac1*r2_slice*pr.psize[2], fac1*r2_slice*pr.psize[2], -fac1*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1],fac1*Sloaded_probe_3d.shape[2]/2*pr.psize[1]], cmap='jet', interpolation='none')
+#plt.imshow(abs() extent=[-1E9*r2_slice*g.psize[2], 1E9*Sloaded_probe_3d.shape[3]/2*Sloaded_probe_3d.psize[2], -1E9*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1],1E9*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1]] ,cmap='jet', interpolation='none')
+plt.xlabel('r2 [nm]'); plt.ylabel('r1 [nm]')#;plt.colorbar()
+plt.title('Amplitude')
+plt.subplot(122)
+#plt.imshow(np.angle(loaded_probeView.data[r3_slice]), extent=[-fac1*r2_slice*Sloaded_probe_3d.psize[2], fac1*r2_slice*Sloaded_probe_3d.psize[2], -fac1*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1],fac1*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1]], cmap='jet', interpolation='none')
+plt.imshow(np.angle(np.squeeze(pr.data)[r3_slice]))#, extent=[-fac1*r2_slice, fac1*r2_slice, -fac1*r1_slice,fac1*r1_slice], cmap='jet', interpolation='none')
+plt.xlabel('r2 [nm]'); plt.ylabel('r1 [nm]')#;plt.colorbar()
+plt.title('Phase')
+plt.tight_layout()
 
 #%%
 #------------------------------------------------------
@@ -863,10 +863,10 @@ def plot3ddata(data):
 #    plt.xlabel('x? k_i?'); plt.ylabel('y')
     #plt.subplot(223)
     #plt.title('-axis')
-    plt.imshow(np.transpose(abs(loaded_probeView.data[:,:,int(data.shape[2]/2)])),origin='lower', cmap='jet', interpolation='none')#, extent=[-1E9*Sloaded_probe_3d.shape[3]/2*Sloaded_probe_3d.psize[2], 1E9*Sloaded_probe_3d.shape[3]/2*Sloaded_probe_3d.psize[2], -1E9*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1],1E9*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1]])
+    plt.imshow(np.transpose(abs(data[:,:,int(data.shape[2]/2)])),origin='lower', cmap='jet', interpolation='none')#, extent=[-1E9*Sloaded_probe_3d.shape[3]/2*Sloaded_probe_3d.psize[2], 1E9*Sloaded_probe_3d.shape[3]/2*Sloaded_probe_3d.psize[2], -1E9*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1],1E9*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1]])
     plt.xlabel('r3'); plt.ylabel('r1')
     
-plot3ddata(np.squeeze(Sloaded_probe_3d.data))
+plot3ddata(np.squeeze(pr.data))
 
 #Sloaded_probe_3d.data ( x, z, y)
 """ notation guide
