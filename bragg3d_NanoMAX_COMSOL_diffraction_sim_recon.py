@@ -6,6 +6,11 @@ patterns then perform XRD mapping on those patterns.
 
 This script is copied from bragg3d_NanoMAX_COMSOL_diffraction_sim_recon.py
 But I removed the part that does scanning XRD analysis and add the reconstruction
+
+
+"""Following the ptypy tutorial but try to convert it to a Bragg experiment and to include strain
+"""
+
 part taken from Alex script demonstraiting Bragg 3D reconstructions in ptypy
 
     cd Documents
@@ -53,9 +58,11 @@ mpl.rcParams['toolbar'] = 'toolbar2'
 #%% imports
 
 
-import ptypy 
-from ptypy import utils as u
+import matplotlib as mpl
 import numpy as np
+import ptypy
+from ptypy import utils as u
+from ptypy.core import View, Container, Storage, Base, POD
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 from mpl_toolkits.mplot3d import Axes3D
@@ -65,6 +72,7 @@ import os
 import sys
 sys.path.insert(0, r'C:\Users\Susanna\Documents\Simulations\scripts\simulated_nanodiffraction') #this doesnt work
 
+scriptname = 'ptypy_simulation'
 
 from read_COMSOL_data import rotate_data
 from read_COMSOL_data import calc_H111
@@ -76,13 +84,24 @@ import time
 date_str = time.strftime("%Y%m%d") # -%H%M%S")
 
 
-import matplotlib
-matplotlib.use( 'Qt5agg' )
+
+mpl.use( 'Qt5agg' )
 
 #plt.close("all")
+
+
+#%% 
+#TODO #create this class (should be updated to Ptycho later) 
+class Base2(Base):
+    pass
+
+P = Base2()
+
+P.CType = np.complex128
+P.FType = np.float64
 #%%
 #---------------------------------------------------------
-# Set up measurement geometry object
+# Set up measurement geometry object and create propagator
 #---------------------------------------------------------
 
 # Define a measurement geometry. The first element of the shape is the number
@@ -95,7 +114,15 @@ matplotlib.use( 'Qt5agg' )
 #g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(51, 151, 151), energy=9.49, distance=1.149, theta_bragg=10.91, propagation = "farfield")  
 
 #starting point
-g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(1*1E-2, 55*1E-6, 55*1E-6), shape=(60, 128, 128), energy=20.0, distance=1.0, theta_bragg=10.91, propagation = "farfield") 
+g = u.Param()
+g.psize=(1*1E-2, 55*1E-6, 55*1E-6)
+g.shape=(60, 128, 128)
+g.energy=20.0
+g.distance=1.0
+g.theta_bragg=10.91
+g.propagation = "farfield"
+G = ptypy.core.geometry_bragg.Geo_Bragg(owner=P, pars=g) 
+
 
 # higher Nx Ny
 #g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(51, 251, 251), energy=9.49, distance=1.149, theta_bragg=10.91, propagation = "farfield")  
@@ -122,7 +149,7 @@ with open(savepath+'\\geometry.txt', 'w') as f:
     f.write('shape %d\n' % g.shape[0])
     f.close()
 
-a='change' 
+
 #%%
 #---------------------------------------------------------
 # Create a container for the object and define views based on scaning postions.
@@ -669,12 +696,15 @@ obj_storage.data = obj_storage_natural.data
 # TODO fill the probes into the storages for phase retrieval
 #---------------------------------------------------------
 
+#P.probe = Container(P,'CProbe', data_type ='np.complex128')
+P.probe = Container(P, 'Cprobe', data_type='complex')
 choise = 'real' #real'#sample_plane'            # 'square' 'loaded' 'circ' or 'real' 'gauss'
 
 if choise == 'circ':
     fsize = g.shape * g.resolution
-    Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
-    Sprobe = Cprobe.new_storage(psize=g.resolution, shape=g.shape[1])
+    
+    pr = P.probe.new_storage(shape=G.shape[0:3], psize=G.resolution[0:3]) #(input need to be ndarrays)
+    
     #zi, yi = Sprobe.grids()
     #  apert = u.smooth_step(fsize[1]/5-np.sqrt(zi[0]**2+yi[0]**2), 0.2e-6)
     #y, x = pr3.grids()
@@ -688,91 +718,91 @@ if choise == 'circ':
     #apert = moon_probe 
     #u.smooth_step(90e-9-np.sqrt(zi[0]**2+yi[0]**2),0.0000000001)
     #if (x-a)**2 + (y-b)**2 <= r**2:
-    Sprobe.fill(apert)
-    
-
-elif choise == 'square':    
-    # First set up a two-dimensional representation of the probe, with
-    # arbitrary pixel spacing. 
-    # make a 50 x 50 nm probe (current size of 1 view)
-    Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
-    Sprobe = Cprobe.new_storage(psize=g.resolution[1], shape=256)
-    zi, yi = Sprobe.grids()
-    square = u.smooth_step(fsize[1]/5-np.abs(yi), 0.00000000000001)*u.smooth_step(fsize[2]/5-np.abs(zi), 0.0000000000000000000001)
-    #square = (yi > -100.0e-9) & (yi < 100.0e-9) & (zi > -100.0e-9) & (zi < 100.0e-9) = 1
-    # square probe
-    # need to use square otherwise it changes data type to whatever you put in
-    #Sprobe.fill(square)
-    
-    
-if choise == 'gauss':
-    Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
-    Sprobe = Cprobe.new_storage(psize=g.resolution, shape=100)
-    zi, yi = Sprobe.grids()
-    std_dev = 90E-9
-    # gaussian probe
-    Sprobe.fill( np.roll(np.exp(-zi**2 / (2 * (std_dev)**2) - yi**2 / (2 * (std_dev)**2)), 100, axis=1))
-
-elif choise == 'real':   
-    
-    loaded_profile = np.load('probe10_focus.npy')
-    # center the probe (cut out the center part)
-    ###################
-    "               OOOOOOOOOOOOOOOBS ROTATE. rot90,3 is correct"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    loaded_profile_cut = np.rot90(np.copy(loaded_profile)[1:121,0:120],3)
-    # save a psize, shape and the array data in the contaioner
-    Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
-    #TODO why im i removing one pixel
-    Sprobe = Cprobe.new_storage(psize=[ 1.89051824e-08,   1.85578409e-08], shape=loaded_profile_cut.shape[0]) 
-### resolution from:    g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(51, 128, 128), energy=9.49, distance=1.0, theta_bragg=11)
-    
-    # fill storage
-    Sprobe.fill(0.0)
-    Sprobe.fill(1j*loaded_profile_cut)
-    zi, yi = Sprobe.grids()
-    
-#   
-elif choise == 'sample_plane':    # this loads the probe in the sample plane not in focus. try this too
-    from ptypy import io
-#    
-    path_probe = 'C:/Users/Sanna/Documents/beamtime/NanoMAX062017/Analysis_ptypy/nice_probe_ptyrfiles/scan10/scan10_pilatus_ML.ptyr'
-    # load all variables in the ptyr file
-    loaded_probe = io.h5read(path_probe,'content').values()[0].probe['S00G00']
-    plt.figure()
-    plt.imshow((abs((loaded_probe['data'][0]))))
-    # save the psize, the shape and the array data in the contaioner
-    #TODO is it correct with (1, 128,128)  etc?
-    Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
-    Sprobe = Cprobe.new_storage(psize=loaded_probe['_psize'], shape=loaded_probe['shape'])
-    # fill storage
-    Sprobe.fill(0.0)
-    Cprobe.fill(loaded_probe['data'])
-    zi, yi = Sprobe.grids()
-
-elif choise == 'loaded':
-    import matplotlib.image as mpimg
-    # load 2d profile
-    loaded_profile = mpimg.imread('C:/Users/Sanna/Documents/python_utilities/fft2_images/L.png')#oval.png single.png')#circle_insquare.png')
-    
-    # squeeze rgb image
-    loaded_profile=np.array(np.sum(loaded_profile, axis=2))
-    # save a psize, shape and the array data in the contaioner
-    Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
-    #TODO dont know if this is right!?
-    Sprobe = Cprobe.new_storage(psize=g.resolution[1:3], shape=128)
-    # fill storage
-    Sprobe.fill(0.0)
-    Cprobe.fill(1j*loaded_profile)
-    zi, yi = Sprobe.grids()
-    # reshape?
+    pr.fill(apert)
    
-fig = u.plot_storage(Sprobe, 11, channel='c') 
+
+#elif choise == 'square':    
+#    # First set up a two-dimensional representation of the probe, with
+#    # arbitrary pixel spacing. 
+#    # make a 50 x 50 nm probe (current size of 1 view)
+#    Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
+#    Sprobe = Cprobe.new_storage(psize=G.resolution[1], shape=256)
+#    zi, yi = Sprobe.grids()
+#    square = u.smooth_step(fsize[1]/5-np.abs(yi), 0.00000000000001)*u.smooth_step(fsize[2]/5-np.abs(zi), 0.0000000000000000000001)
+#    #square = (yi > -100.0e-9) & (yi < 100.0e-9) & (zi > -100.0e-9) & (zi < 100.0e-9) = 1
+#    # square probe
+#    # need to use square otherwise it changes data type to whatever you put in
+#    #Sprobe.fill(square)
+#    
+#    
+#if choise == 'gauss':
+#    Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
+#    Sprobe = Cprobe.new_storage(psize=g.resolution, shape=100)
+#    zi, yi = Sprobe.grids()
+#    std_dev = 90E-9
+#    # gaussian probe
+#    Sprobe.fill( np.roll(np.exp(-zi**2 / (2 * (std_dev)**2) - yi**2 / (2 * (std_dev)**2)), 100, axis=1))
+#
+#elif choise == 'real':   
+#    
+#    loaded_profile = np.load('probe10_focus.npy')
+#    # center the probe (cut out the center part)
+#    ###################
+#    "               OOOOOOOOOOOOOOOBS ROTATE. rot90,3 is correct"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+#    loaded_profile_cut = np.rot90(np.copy(loaded_profile)[1:121,0:120],3)
+#    # save a psize, shape and the array data in the contaioner
+#    Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
+#    #TODO why im i removing one pixel
+#    Sprobe = Cprobe.new_storage(psize=[ 1.89051824e-08,   1.85578409e-08], shape=loaded_profile_cut.shape[0]) 
+#### resolution from:    g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(51, 128, 128), energy=9.49, distance=1.0, theta_bragg=11)
+#    
+#    # fill storage
+#    Sprobe.fill(0.0)
+#    Sprobe.fill(1j*loaded_profile_cut)
+#    zi, yi = Sprobe.grids()
+#    
+##   
+#elif choise == 'sample_plane':    # this loads the probe in the sample plane not in focus. try this too
+#    from ptypy import io
+##    
+#    path_probe = 'C:/Users/Sanna/Documents/beamtime/NanoMAX062017/Analysis_ptypy/nice_probe_ptyrfiles/scan10/scan10_pilatus_ML.ptyr'
+#    # load all variables in the ptyr file
+#    loaded_probe = io.h5read(path_probe,'content').values()[0].probe['S00G00']
+#    plt.figure()
+#    plt.imshow((abs((loaded_probe['data'][0]))))
+#    # save the psize, the shape and the array data in the contaioner
+#    #TODO is it correct with (1, 128,128)  etc?
+#    Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
+#    Sprobe = Cprobe.new_storage(psize=loaded_probe['_psize'], shape=loaded_probe['shape'])
+#    # fill storage
+#    Sprobe.fill(0.0)
+#    Cprobe.fill(loaded_probe['data'])
+#    zi, yi = Sprobe.grids()
+#
+#elif choise == 'loaded':
+#    import matplotlib.image as mpimg
+#    # load 2d profile
+#    loaded_profile = mpimg.imread('C:/Users/Sanna/Documents/python_utilities/fft2_images/L.png')#oval.png single.png')#circle_insquare.png')
+#    
+#    # squeeze rgb image
+#    loaded_profile=np.array(np.sum(loaded_profile, axis=2))
+#    # save a psize, shape and the array data in the contaioner
+#    Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
+#    #TODO dont know if this is right!?
+#    Sprobe = Cprobe.new_storage(psize=g.resolution[1:3], shape=128)
+#    # fill storage
+#    Sprobe.fill(0.0)
+#    Cprobe.fill(1j*loaded_profile)
+#    zi, yi = Sprobe.grids()
+#    # reshape?
+   
+fig = u.plot_storage(pr,0) 
 
 # In order to put some physics in the illumination we set the number of
 # photons to 1 billion
 #comment out to get normal fft
 nbr_photons = 1E9
-#Sprobe.data *= np.sqrt(nbr_photons/np.sum(Sprobe.data*Sprobe.data.conj()))
+pr.data *= np.sqrt(nbr_photons/np.sum(pr.data*pr.data.conj()))
 #print( u.norm2(Sprobe.data)    )
 
 #import nmutils.utils
@@ -780,46 +810,18 @@ nbr_photons = 1E9
 #field3d = nmutils.utils.propagateNearfield(Sprobe.data[0], g.psize, -100E-9, g.energy)
 
 # prepare in 3d
-Sloaded_probe_3d = g.prepare_3d_probe(Sprobe, system='natural', layer=0)#NOTE usually its the input system you specify but here its the output. Also there is an autocenter 
+probe_3d = G.prepare_3d_probe(pr, system='natural', layer=0)#NOTE usually its the input system you specify but here its the output. Also there is an autocenter 
+pr.fill(probe_3d) #not sure if this worked
+
+
 loaded_probeView = Sloaded_probe_3d.views[0]
-""" TEMPORARY, for a probe that is defined only in amplitude, I REMOVEd THE PAHSE RAMPS THINGS ITHAT GET INT HE 3D PROBE AFTER EXTRUSSSSSSSION"""
-#loaded_probeView.data = abs(loaded_probeView.data) 
-
-
-
-
-# visualize 3d probe and probe propagated to transmission
-
-# propagate probe to transmission
-ill = Sprobe.data[0]
-#np.save('probe' +date_str,np.squeeze(ill))
-
-propagated_ill = g.propagator.fw(ill)
-fig = plt.figure()
-ax = fig.add_subplot(111)
-im = ax.imshow(np.log10(np.abs(propagated_ill)+1))
-plt.colorbar(im)
-
-factor = 1E9
-plt.figure()
-plt.subplot(121)
-plt.suptitle('Loaded 2d probe. psize=%f nm \n axes here are correct. defined in sample plane'%(Sprobe.psize[0]*1E9))
-plt.imshow((abs(np.squeeze(Sprobe.data))), cmap='jet', interpolation='none', extent=[-factor*Sprobe.shape[1]/2*Sprobe.psize[0], factor*Sprobe.shape[1]/2*Sprobe.psize[0], -factor*Sprobe.shape[2]/2*Sprobe.psize[1],factor*Sprobe.shape[2]/2*Sprobe.psize[1]]) 
-plt.title('Amplitude')
-plt.xlabel('y [nm]'); plt.ylabel('z [nm]');plt.colorbar()
-plt.subplot(122)
-plt.imshow(np.angle(np.squeeze(Sprobe.data)), cmap='jet', interpolation='none', extent=[-factor*Sprobe.shape[1]/2*Sprobe.psize[0], factor*Sprobe.shape[1]/2*Sprobe.psize[0], -factor*Sprobe.shape[2]/2*Sprobe.psize[1],factor*Sprobe.shape[2]/2*Sprobe.psize[1]])
-plt.title('Phase')
-plt.xlabel('y [nm]'); plt.colorbar()
-
-
 
 #%%
 #------------------------------------------------------
 #  Visualize the probe extruded in 3d. Corrected
 #------------------------------------------------------
 
-r3, r1, r2 = Sloaded_probe_3d.grids()
+r3, r1, r2 = pr.grids()
 r3_slice = int(g.shape[0]/2)
 r1_slice = int(g.shape[1]/2)
 r2_slice = int(g.shape[2]/2)
