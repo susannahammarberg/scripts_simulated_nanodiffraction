@@ -1260,22 +1260,27 @@ if algorithm == 'DM':
 
 plt.show()
 
-savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\%s'%date_str
+savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\recons\%s'%date_str
 
 for store in storage_save:
     
-    #only the projection will be correct
-    
+    #only the projection will be correct    
 
     if not os.path.exists(savepath):
         os.makedirs(savepath)
         print('new folder in this savepath was created:')
-        pint(savepath)
+        print(savepath)
 
-
+    
     #save as np files and plot
     S_cart = g.coordinate_shift(store, input_space='real', input_system='natural', keep_dims=False)
-
-    x, z, y = S_cart.grids()
-    probe        
+    np.save(savepath + '_object',np.squeeze(S_cart.data)[projection])
     
+    x, z, y = S_cart.grids()
+    
+    np.save(savepath + '_x',x)
+    np.save(savepath + '_y',y)
+    np.save(savepath + '_z',z)
+    np.save(savepath + '_probe',loaded_probeView.data[projection])
+    
+    #OBS, verkar som att man kan spara storages i np.. testa att öppna. då kanske jag kan spara simulationen också. man kan ske kan spara views också då.
