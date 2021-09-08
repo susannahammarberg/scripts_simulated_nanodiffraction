@@ -9,8 +9,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 #from ptypy.core import View, Container, Storage, Base
 import os
+import sys
+
+sys.path.append(r"C:\Users\Sanna\Documents\Beamtime\NanoMAX_May2020\scripts")
 
 from plotPtypyResults import plot2drecons
+
 
 
 date_saved = 20210908
@@ -24,9 +28,13 @@ x = np.squeeze(np.load(openpath + '_x.npy'))
 y = np.squeeze(np.load(openpath + '_y.npy')) 
 z = np.squeeze(np.load(openpath + '_z.npy')) 
 
+#TODO which coordinate, x,y,z?
+psize = x[1,0,0]-x[0,0,0]
+
+extent = 1e6 * np.array([0,(obj.shape[1]-1)*psize, 0, (obj.shape[0]-1)*psize])
 
 
 
-def plot2drecons(obj, probe, extent):
+plot2drecons(obj.T, probe, extent, savepath, save=False)
 
 

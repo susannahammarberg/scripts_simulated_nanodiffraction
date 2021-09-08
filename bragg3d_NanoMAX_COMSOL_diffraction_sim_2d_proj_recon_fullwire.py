@@ -62,7 +62,8 @@ from mpl_toolkits.mplot3d import Axes3D
 #import mayavi.mlab as mlab
 import scipy.interpolate as inter
 import sys
-sys.path.insert(0, r'C:\Users\Susanna\Documents\Simulations\scripts\simulated_nanodiffraction') #this doesnt work
+sys.path.append(r'C:\Users\Susanna\Documents\Simulations\scripts\simulated_nanodiffraction') 
+
 import os
 
 from read_COMSOL_data import rotate_data
