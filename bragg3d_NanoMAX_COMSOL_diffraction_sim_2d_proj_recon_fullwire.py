@@ -63,7 +63,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import scipy.interpolate as inter
 import sys
 sys.path.insert(0, r'C:\Users\Susanna\Documents\Simulations\scripts\simulated_nanodiffraction') #this doesnt work
-
+import os
 
 from read_COMSOL_data import rotate_data
 from read_COMSOL_data import calc_H111
@@ -467,7 +467,7 @@ def plot_strain():
     print( np.nanmax(np.gradient(interpol_data)[1]))
     print( np.nanmin(np.gradient(interpol_data)[1]))
     
-plot_strain()
+#plot_strain()
 
 
 #%%
@@ -1192,7 +1192,7 @@ if algorithm == 'PIE':
             #views[j].data += beta * np.abs(loaded_probeView.data) / np.abs(loaded_probeView.data).max() * np.conj(loaded_probeView.data) / (np.abs(loaded_probeView.data)**2 + eps) * (exit - exit_)
             
 
-        errors.append(np.abs(obj_storage.data[projection] - S_true.data[projection]).sum())
+        errors.append(np.abs(np.squeeze(obj_storage.data)[projection] - np.squeeze(S_true.data)[projection]).sum())
         ferrors.append(np.mean(ferrors_))
 
         #TODO only save the projection
@@ -1260,124 +1260,22 @@ if algorithm == 'DM':
 
 plt.show()
 
-## means
-#fig, ax = plt.subplots(ncols=3)
-#ax[0].imshow(np.mean(np.angle(S_cart.data[0]), axis=1).T, extent=[x.min(), x.max(), y.min(), y.max()], interpolation='none', origin='lower', cmap='jet')
-#plt.setp(ax[0], ylabel='y', xlabel='x', title='top view')
-#ax[1].imshow(np.mean(np.angle(S_cart.data[0]), axis=2).T, extent=[x.min(), x.max(), z.min(), z.max()], interpolation='none', origin='lower', cmap='jet')
-#plt.setp(ax[1], ylabel='z', xlabel='x', title='side view')
-#ax[2].imshow(np.mean(np.angle(S_cart.data[0]), axis=0).T, extent=[ z.min(), z.max(), y.min(), y.max()], interpolation='none', origin='lower', cmap='jet')
-#plt.setp(ax[2], ylabel='y', xlabel='z', title='front view')
-#plt.tight_layout() 
-
+savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\%s'%date_str
 
 for store in storage_save:
     
     #only the projection will be correct
-
-    fig = plt.figure()    # row col  row col
-    ax0 = plt.subplot2grid((3, 3), (0, 0), colspan=3)
-    ax2 = plt.subplot2grid((3, 3), (1, 0), colspan=1, rowspan=2)
-    ax3 = plt.subplot2grid((3, 3), (1, 1), colspan=1, rowspan=2)
-    ax4 = plt.subplot2grid((3, 3), (1, 2), colspan=1, rowspan=2)
-
-    ax0.plot(ferrors,'blue',marker='.', label='Fourier error')
-    ax0.legend(bbox_to_anchor=(0.65, 0.5), loc='center left',)
     
+
+    if not os.path.exists(savepath):
+        os.makedirs(savepath)
+        print('new folder in this savepath was created:')
+        pint(savepath)
+
+
+    #save as np files and plot
     S_cart = g.coordinate_shift(store, input_space='real', input_system='natural', keep_dims=False)
+
     x, z, y = S_cart.grids()
-    ax2.imshow(np.mean(np.abs(S_cart.data[0]), axis=1).T, extent=[fact*x.min(), fact*x.max(),fact* y.min(),fact* y.max()], interpolation='none', origin='lower')
-    plt.setp(ax2, ylabel=r'y [$\mu$m]', xlabel=r'x [$\mu$m]', title='top view')
-
-    ax3.imshow(np.mean(np.abs(S_cart.data[0]), axis=2).T, extent=[fact*x.min(), fact*x.max(), fact*z.min(), fact*z.max()], interpolation='none', origin='lower')
-    plt.setp(ax3, ylabel=r'z [$\mu$m]', xlabel=r'x [$\mu$m]', title='side view')
+    probe        
     
-    ax4.imshow(np.mean(np.abs(S_cart.data[0]) , axis=0).T, extent=[fact*z.min(), fact*z.max(), fact*y.min(), fact*y.max()], interpolation='none', origin='lower')
-    plt.setp(ax4, ylabel=r'y [$\mu$m]', xlabel=r'z [$\mu$m]', title='front view')
-
-    plt.setp(ax2.xaxis.get_majorticklabels(), rotation=70)
-    plt.setp(ax3.xaxis.get_majorticklabels(), rotation=70)
-    
-    #thight layout should minimize the overlab of labels
-    plt.tight_layout() 
-    plt.draw()
-    
-    
-    mask = np.zeros((S_cart.shape))
-    # if intensity is larger than mean value
-    #mask[abs(S_cart.data)>abs(S_cart.data).mean()] = 1 
-    mask[abs(S_cart.data)>0.5] = 1 
-    
-    fig, ax = plt.subplots(ncols=3)
-    plt.suptitle('Phase masked with amplitude. Central cuts.')
-    im1 = ax[0].imshow(( np.squeeze(mask)[:,zcut] * np.angle(np.squeeze(S_cart.data)[:,zcut]) ).T, extent=[fact*x.min(), fact*x.max(), fact*y.min(), fact*y.max()], interpolation='none', origin='lower', cmap='jet')
-    plt.setp(ax[0], ylabel=r'y [$\mu$m]', xlabel=r'x [$\mu$m]', title='top view')
-    fig.colorbar(im1,ax=ax[0] )    
-    im2 = ax[1].imshow(( np.squeeze(mask)[:,:,ycut] *  np.angle(np.squeeze(S_cart.data[0])[:,:,ycut])).T, extent=[fact*x.min(), fact*x.max(), fact*z.min(), fact*z.max()], interpolation='none', origin='lower', cmap='jet')
-    plt.setp(ax[1], ylabel=r'z [$\mu$m]', xlabel=r'x [$\mu$m]', title='side view')
-    fig.colorbar(im2,ax=ax[1] )    
-    im3 = ax[2].imshow((np.squeeze(mask)[xcut] * np.angle(np.squeeze(S_cart.data[0])[xcut])).T, extent=[fact* z.min(), fact*z.max(), fact*y.min(), fact*y.max()], interpolation='none', origin='lower', cmap='jet')
-    plt.setp(ax[2], ylabel=r'y [$\mu$m]', xlabel=r'z [$\mu$m]', title='front view')
-    fig.colorbar(im3,ax=ax[2] )
-    plt.tight_layout() 
-    # dont show it just save it?
-    # plt.savefig("\savefig\iter%"%i)
-    # save as array and plot afterwards
-    plt.draw()
-    
-    fig, ax = plt.subplots(ncols=3)
-    plt.suptitle('Phase without mask. Central cuts.')
-    im1 = ax[0].imshow( np.angle(np.squeeze(S_cart.data)[:,zcut]) .T, extent=[fact*x.min(), fact*x.max(), fact*y.min(), fact*y.max()], interpolation='none', origin='lower', cmap='jet')
-    plt.setp(ax[0], ylabel=r'y [$\mu$m]', xlabel=r'x [$\mu$m]', title='top view')
-    fig.colorbar(im1,ax=ax[0] )    
-    im2 = ax[1].imshow( ( np.angle(np.squeeze(S_cart.data[0])[:,:,ycut])).T, extent=[fact*x.min(), fact*x.max(), fact*z.min(), fact*z.max()], interpolation='none', origin='lower', cmap='jet')
-    plt.setp(ax[1], ylabel=r'z [$\mu$m]', xlabel=r'x [$\mu$m]', title='side view')
-    fig.colorbar(im2,ax=ax[1] )    
-    im3 = ax[2].imshow(( np.angle(np.squeeze(S_cart.data[0])[xcut])).T, extent=[fact* z.min(), fact*z.max(), fact*y.min(), fact*y.max()], interpolation='none', origin='lower', cmap='jet')
-    plt.setp(ax[2], ylabel=r'y [$\mu$m]', xlabel=r'z [$\mu$m]', title='front view')
-    fig.colorbar(im3,ax=ax[2] )
-    plt.tight_layout() 
-    # dont show it just save it?
-    # plt.savefig("\savefig\iter%"%i)
-    # save as array and plot afterwards
-    plt.draw()
-    
-    
-    
-#plot in a more narrow region anround the object
-lenx = int(np.squeeze(S_cart.data).shape[0])
-lenz = int(np.squeeze(S_cart.data).shape[1])
-leny = int(np.squeeze(S_cart.data).shape[2])
-
-rangex = int(lenx/4)
-rangey = int(leny/12)
-rangez = int(lenz/12)
-
-#Tänk på att det fortfarande ska vara centerat kring 0
-slicex = slice(xcut-rangex, xcut+rangex)
-slicey = slice(ycut-rangey, ycut+rangey)
-slicez = slice(zcut-rangez, zcut+rangez)
-#g.resolution
-
-
-extent_zy_cut = 1e6 * np.array([-rangez*g.resolution[1],rangez*g.resolution[1],   -rangey*g.resolution[2],rangey*g.resolution[2]])
-extent_xy_cut = 1e6 * np.array([-rangex*g.resolution[0],rangex*g.resolution[0],   -rangey*g.resolution[2],rangey*g.resolution[2]])
-extent_xz_cut = 1e6 * np.array([-rangex*g.resolution[0],rangex*g.resolution[0],   -rangez*g.resolution[1],rangez*g.resolution[1]])
-
-
-fig, ax = plt.subplots(ncols=3)
-plt.suptitle('Phase masked with amplitude. Central cuts.')
-im1 = ax[0].imshow(( np.squeeze(mask)[:,zcut][slicex,slicey] * np.angle(np.squeeze(S_cart.data)[:,zcut][slicex,slicey]) ).T, extent=extent_xy_cut, interpolation='none', origin='lower', cmap='jet')
-plt.setp(ax[0], ylabel=r'y [$\mu$m]', xlabel=r'x [$\mu$m]', title='top view')
-fig.colorbar(im1,ax=ax[0] )    
-im2 = ax[1].imshow(( np.squeeze(mask)[:,:,ycut][slicex,slicez] *  np.angle(np.squeeze(S_cart.data[0])[:,:,ycut][slicex,slicez])).T, extent=extent_xz_cut, interpolation='none', origin='lower', cmap='jet')
-plt.setp(ax[1], ylabel=r'z [$\mu$m]', xlabel=r'x [$\mu$m]', title='side view')
-fig.colorbar(im2,ax=ax[1] )    
-im3 = ax[2].imshow((np.squeeze(mask)[xcut][slicez,slicey] * np.angle(np.squeeze(S_cart.data[0])[xcut][slicez,slicey])).T, extent=extent_zy_cut, interpolation='none', origin='lower', cmap='jet')
-plt.setp(ax[2], ylabel=r'y [$\mu$m]', xlabel=r'z [$\mu$m]', title='front view')
-fig.colorbar(im3,ax=ax[2] )
-plt.tight_layout() 
-# dont show it just save it?
-# plt.savefig("\savefig\iter%"%i)
-# save as array and plot afterwards
-plt.draw()
