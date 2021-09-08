@@ -8,7 +8,7 @@ This script is copied from bragg3d_NanoMAX_COMSOL_diffraction_sim_recon.py
 But I removed the part that does scanning XRD analysis and add the reconstruction
 part taken from Alex script demonstraiting Bragg 3D reconstructions in ptypy
 
-    cd Documents
+    
 
 ----------------------------
 HOW TO USE
@@ -61,7 +61,6 @@ from matplotlib import ticker
 from mpl_toolkits.mplot3d import Axes3D
 #import mayavi.mlab as mlab
 import scipy.interpolate as inter
-import os
 import sys
 sys.path.insert(0, r'C:\Users\Susanna\Documents\Simulations\scripts\simulated_nanodiffraction') #this doesnt work
 
@@ -92,10 +91,10 @@ matplotlib.use( 'Qt5agg' )
 #InP:10.91  GaInP: 11.09  #51
 
 #REAl
-#g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(51, 151, 151), energy=9.49, distance=1.149, theta_bragg=10.91, propagation = "farfield")  
+g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(51, 151, 151), energy=9.49, distance=1.149, theta_bragg=10.91, propagation = "farfield")  
 
 #starting point
-g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(1*1E-2, 55*1E-6, 55*1E-6), shape=(60, 128, 128), energy=20.0, distance=1.0, theta_bragg=10.91, propagation = "farfield") 
+#g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(1*1E-2, 55*1E-6, 55*1E-6), shape=(60, 128, 128), energy=20.0, distance=1.0, theta_bragg=10.91, propagation = "farfield") 
 
 # higher Nx Ny
 #g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(51, 251, 251), energy=9.49, distance=1.149, theta_bragg=10.91, propagation = "farfield")  
@@ -108,21 +107,6 @@ FOV = g.resolution * g.shape        #obs fov in the coordinate system reciprocal
 print( FOV)
 print( g.resolution)
 
-savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\%s'%date_str
-
-if not os.path.exists(savepath):
-    os.makedirs(savepath)
-    print('new folder in this savepath was created')
-    
-with open(savepath+'\\geometry.txt', 'w') as f:
-    
-    f.write('distance %.4e\n' % g.distance)
-    f.write('energy %.4e\n' % g.energy)
-    f.write('psize %.4e\n' % g.psize[0])
-    f.write('shape %d\n' % g.shape[0])
-    f.close()
-
-a='change' 
 #%%
 #---------------------------------------------------------
 # Create a container for the object and define views based on scaning postions.
@@ -138,8 +122,8 @@ obj_container = ptypy.core.Container( ID='Cobj',data_type=np.complex128, data_di
 ##%%
 ## Define scanning positions in x,z,y
 #starting point
-Ny = 20
-Nz = 30
+Ny = 11
+Nz = 50
 
 #~real
 #Ny = 11
@@ -150,8 +134,8 @@ positions = np.zeros((Npos,3))
 # stepsize as fed to motors
 
 #starting point
-dy_prime = 10.0e-9
-dz_prime = 10.0e-9
+dy_prime = 20.0e-9
+dz_prime = 20.0e-9
 
 
 #real
@@ -159,7 +143,7 @@ dz_prime = 10.0e-9
 #dz_prime = 30.0e-9
 
 ## start this far away from the center point of the wire
-dz_center = 0# 630E-9
+dz_center = 0#630E-9
 
 #dz_center = -600E-9
 
@@ -204,9 +188,7 @@ print( obj_storage.formatted_report()[0]) # here the shape is just the shape of 
 obj_container.reformat() 
 print( obj_storage.formatted_report()[0]) # here you see the shape is bigger in y which is the axis in which we defined the scanning
 
-np.save(r"C:\Users\Sanna\Documents\GitHub\simulated_nanodiffraction\positions", positions)
 
-    
 #%%
 #--------------------------------------------------------------
 # Make a shifted copy of the object storage and collect the
@@ -233,20 +215,20 @@ zz = np.squeeze(zz)
 
 # define path to COMSOL data
 #path = 'C:/Users/Sanna/Documents/COMSOL/COMSOL_data/InGaP_middlesegment_variation/'
-#path = 'C:/Users/Sanna/Documents/COMSOL/COMSOL_data/'
+path = 'C:/Users/Sanna/Documents/COMSOL/COMSOL_data/'
 #path = 
 
 
-#sample = 'full_segmented_NW_InP_InGaP_20191029'     # updated version with strain mismatch 1.5
+sample = 'full_segmented_NW_InP_InGaP_20191029'     # updated version with strain mismatch 1.5
 ###sample = 'full_segmented_NW_InP_InGaP_20190828' (including 19 segment)
-sample = '170'   
+#sample = '170'   
 
 # choose displacement u,v, or w
 uvw = 5 # 3 4 5 = u v w   # for 111 should be 5
 
 # choose domain to plot (or None if file does not have domains )
 # TODO only correct for domain 3 or None. For the InGaP it tries to interpolate the values where the InP segment is
-domain = 3# 'InP_357911' # InP_357911' #'InGaP_24681012'  #'InP_357911'    
+domain = 'InP_357911'#3# 'InP_357911' # InP_357911' #'InGaP_24681012'  #'InP_357911'    
 
 
 if domain == None:
@@ -269,8 +251,8 @@ elif uvw == 5:
     uvw_str = 'w'
 
 # load the data (coordinates [m] + displacement field [nm] in one coordinate)
-#file1 = np.loadtxt(path + sample +'.txt',skiprows=9, usecols = useThesecols)
-file1 = np.loadtxt( sample +'.txt',skiprows=9, usecols = useThesecols)
+file1 = np.loadtxt(path + sample +'.txt',skiprows=9, usecols = useThesecols)
+#file1 = np.loadtxt( sample +'.txt',skiprows=9, usecols = useThesecols)
 
 if domain == 3:
     # cut out the domain data 
@@ -415,7 +397,7 @@ def scatter_interpol():
     plt.title('interpolated displacement')
     plt.colorbar(sc); plt.axis('scaled')
     ax.set_xlabel('x [m]'); ax.set_ylabel('y [m]'); ax.set_zlabel('z [m]')
-#scatter_interpol()
+scatter_interpol()
 #%%
 #Calculate the strain
 #-----------------------------------------------------
@@ -428,6 +410,7 @@ displacement_slice_NWlength = np.fliplr(interpol_data[int(g.shape[0]/2)].T)[75:1
 
 # ska man använda den Q-vektor som sätts at theta, alltså det theta om mäts upp ~~8 deg istället för detta som motsvarar 10.54
 
+# np graient should be more correct
 strain_dwdz2 = np.diff((displacement_slice ) , axis = 1, append=0) /dz
 strain_dwdz = np.gradient(displacement_slice , dz) 
 
@@ -442,7 +425,8 @@ def plot_strain():
     plt.imshow((interpol_data)[int(g.shape[0]/2)],cmap='jet', origin='lower')
     plt.colorbar()
     
-    dz2 = zz[0,-1,1] - zz[0,-2,0] # dont know why this is different from dz 
+    
+    dz2 = zz[0,-1,0] - zz[0,-2,0] # dont know why this is different from dz (Becauze dz is scanning positions, and we dont scan in z but we have resolutrion oin z.)
     dy2 = yy[0,0,1] - yy[0,0,0]
     plt.figure()
     plt.title('2d slice of displacement')
@@ -457,7 +441,7 @@ def plot_strain():
     plt.colorbar(orientation='horizontal')
     
     plt.figure()    
-    plt.imshow(100*strain_dwdz[1],cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
+    plt.imshow(100*strain_dwdz,cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
     #plt.imshow(100*strain_dwdz[1],cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
     plt.title('Strain calc with np.gradient [%]')
     #plt.title('Strain calc with np.diff [%]')
@@ -483,7 +467,7 @@ def plot_strain():
     print( np.nanmax(np.gradient(interpol_data)[1]))
     print( np.nanmin(np.gradient(interpol_data)[1]))
     
-#plot_strain()
+plot_strain()
 
 
 #%%
@@ -504,7 +488,7 @@ Q_vect = calc_H111(domain_str)
 # return a complex object from the displacement field. object defined by the COMSOL model
 #Note that the displacement data here shopuld be in nm
 "teeeeeeeeeeeeeeeeeeeeest Avoid phase wrapping just reduce the displacement ffffffffffffffffffff"               #OBSOBS - sign!
-reduce_displacemnt_factor = 0.5#1.0  #-1.0 or 1.0
+reduce_displacemnt_factor = 1.0  #-1.0 or 1.0
 "teeeeeeeeeeeeeeeeeeeeefffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 
 # calculate phase mean InGaP q-vector in the experiment
@@ -572,34 +556,34 @@ obj_storage_cart.fill((obj))
 # plot whats in the cartesian storage
 fact = 1E6
 # Plot that
-plt.figure()
-plt.title('Phase stored in the cartesian storage (np.angle)')
-plt.imshow(sum(np.angle(obj_storage_cart.data[0])),cmap='jet',interpolation='none')#, extent = []);
-plt.colorbar()
+#plt.figure()
+#plt.title('Phase stored in the cartesian storage (np.angle)')
+#plt.imshow((np.angle(obj_storage_cart.data[0][25])),cmap='jet',interpolation='none')#, extent = []);
+#plt.colorbar()
 
 
 fact = 1E9
 
-fig, ax = plt.subplots(nrows=1, ncols=3)
-plt.suptitle('Phase of the cartesian object storage. Mean values.')
-ax[0].imshow(np.mean(np.angle(obj_storage_cart.data[0]), axis=1).T, extent=[fact*xx.min(), fact*xx.max(), fact*yy.min(), fact*yy.max()], interpolation='none', origin='lower', cmap='jet')
-plt.setp(ax[0], ylabel='y um', xlabel='x um', title='top view')
-ax[1].imshow(np.mean(np.angle(obj_storage_cart.data[0]), axis=2).T, extent=[fact*xx.min(), fact*xx.max(), fact*zz.min(), fact*zz.max()], interpolation='none', origin='lower', cmap='jet')
-plt.setp(ax[1], ylabel='z um', xlabel='x um', title='side view')
-ax[2].imshow(np.mean(np.angle(obj_storage_cart.data[0]), axis=0).T, extent=[fact*zz.min(), fact*zz.max(), fact*yy.min(), fact*yy.max()], interpolation='none', origin='lower', cmap='jet')
-plt.setp(ax[2], ylabel='y um', xlabel='z um', title='front view')
-
-fig, ax = plt.subplots(nrows=1, ncols=3)
-plt.suptitle('Abs of the cartesian object storage. Mean values. ')
-ax[0].imshow(np.mean(np.abs(obj_storage_cart.data[0]), axis=1).T, extent=[fact*xx.min(), fact*xx.max(), fact*yy.min(), fact*yy.max()], interpolation='none', origin='lower', cmap='jet')
-plt.setp(ax[0], ylabel='y um', xlabel='x um', title='top view')
-ax[1].imshow(np.mean(np.abs(obj_storage_cart.data[0]), axis=2).T, extent=[fact*xx.min(), fact*xx.max(), fact*zz.min(), fact*zz.max()], interpolation='none', origin='lower', cmap='jet')
-plt.setp(ax[1], ylabel='z um', xlabel='x um', title='side view')
-ax[2].imshow(np.mean(np.abs(obj_storage_cart.data[0]), axis=0).T, extent=[fact*zz.min(), fact*zz.max(), fact*yy.min(), fact*yy.max()], interpolation='none', origin='lower', cmap='jet')
-plt.setp(ax[2], ylabel='y um', xlabel='z um', title='front view')
-
-
-
+#fig, ax = plt.subplots(nrows=1, ncols=3)
+#plt.suptitle('Phase of the cartesian object storage. Mean values.')
+#ax[0].imshow(np.mean(np.angle(obj_storage_cart.data[0]), axis=1).T, extent=[fact*xx.min(), fact*xx.max(), fact*yy.min(), fact*yy.max()], interpolation='none', origin='lower', cmap='jet')
+#plt.setp(ax[0], ylabel='y um', xlabel='x um', title='top view')
+#ax[1].imshow(np.mean(np.angle(obj_storage_cart.data[0]), axis=2).T, extent=[fact*xx.min(), fact*xx.max(), fact*zz.min(), fact*zz.max()], interpolation='none', origin='lower', cmap='jet')
+#plt.setp(ax[1], ylabel='z um', xlabel='x um', title='side view')
+#ax[2].imshow(np.mean(np.angle(obj_storage_cart.data[0]), axis=0).T, extent=[fact*zz.min(), fact*zz.max(), fact*yy.min(), fact*yy.max()], interpolation='none', origin='lower', cmap='jet')
+#plt.setp(ax[2], ylabel='y um', xlabel='z um', title='front view')
+#
+#fig, ax = plt.subplots(nrows=1, ncols=3)
+#plt.suptitle('Abs of the cartesian object storage. Mean values. ')
+#ax[0].imshow(np.mean(np.abs(obj_storage_cart.data[0]), axis=1).T, extent=[fact*xx.min(), fact*xx.max(), fact*yy.min(), fact*yy.max()], interpolation='none', origin='lower', cmap='jet')
+#plt.setp(ax[0], ylabel='y um', xlabel='x um', title='top view')
+#ax[1].imshow(np.mean(np.abs(obj_storage_cart.data[0]), axis=2).T, extent=[fact*xx.min(), fact*xx.max(), fact*zz.min(), fact*zz.max()], interpolation='none', origin='lower', cmap='jet')
+#plt.setp(ax[1], ylabel='z um', xlabel='x um', title='side view')
+#ax[2].imshow(np.mean(np.abs(obj_storage_cart.data[0]), axis=0).T, extent=[fact*zz.min(), fact*zz.max(), fact*yy.min(), fact*yy.max()], interpolation='none', origin='lower', cmap='jet')
+#plt.setp(ax[2], ylabel='y um', xlabel='z um', title='front view')
+#
+#
+#
 
 
 # make a copy of the cartesian storage but shifted to natural
@@ -644,21 +628,21 @@ obj_storage.data = obj_storage_natural.data
 # CAN NOT PLOT THE SKEWED SYSTEM
 #---------------------------------------------------
 
-#prop_data = abs(g.propagator.fw(views[0].data))**2   #v.data * probeView.data
-##try BasicBragg3dPropagator() ?
-#inx_slice = g.shape[0]/2
+prop_data = abs(g.propagator.fw(views[50].data))**2   #v.data * probeView.data
+#try BasicBragg3dPropagator() ?
+inx_slice = int(g.shape[0]/2)
 
-#plt.figure()
-#plt.suptitle('Test of propagator, without using any probe')
-#plt.subplot(211)
-## TODO not correct to take the max nd min here, right. it will give the max of the total thing
-#plt.imshow(np.abs(views[0].data[inx_slice]), cmap = 'jet')#, extent = [factor*yy.min(),factor*yy.max(), factor*zz.min(), factor*zz.max()])
-#plt.title('view 0')
-#plt.xlabel('y [nm]'); plt.ylabel('z [nm]')
-#plt.subplot(212)
-#plt.imshow(prop_data[inx_slice], cmap = 'jet')
-#plt.title('2D cut of the resulting diffraction pattern') 
-#
+plt.figure()
+plt.suptitle('Test of propagator, without using any probe')
+plt.subplot(211)
+# TODO not correct to take the max nd min here, right. it will give the max of the total thing
+plt.imshow(np.abs(views[0].data[inx_slice]), cmap = 'jet')#, extent = [factor*yy.min(),factor*yy.max(), factor*zz.min(), factor*zz.max()])
+plt.title('view 0')
+plt.xlabel('y [nm]'); plt.ylabel('z [nm]')
+plt.subplot(212)
+plt.imshow(prop_data[inx_slice], cmap = 'jet')
+plt.title('2D cut of the resulting diffraction pattern') 
+
 
 #%%
 ##--------
@@ -705,7 +689,7 @@ obj_storage.data = obj_storage_natural.data
 # TODO fill the probes into the storages for phase retrieval
 #---------------------------------------------------------
 
-choise = 'real' #real'#sample_plane'            # 'square' 'loaded' 'circ' or 'real' 'gauss'
+choise = 'real'#sample_plane'            # 'square' 'loaded' 'circ' or 'real' 'gauss'
 
 if choise == 'circ':
     fsize = g.shape * g.resolution
@@ -725,7 +709,6 @@ if choise == 'circ':
     #u.smooth_step(90e-9-np.sqrt(zi[0]**2+yi[0]**2),0.0000000001)
     #if (x-a)**2 + (y-b)**2 <= r**2:
     Sprobe.fill(apert)
-    
 
 elif choise == 'square':    
     # First set up a two-dimensional representation of the probe, with
@@ -827,27 +810,25 @@ loaded_probeView = Sloaded_probe_3d.views[0]
 # visualize 3d probe and probe propagated to transmission
 
 # propagate probe to transmission
-ill = Sprobe.data[0]
-#np.save('probe' +date_str,np.squeeze(ill))
-
-propagated_ill = g.propagator.fw(ill)
-fig = plt.figure()
-ax = fig.add_subplot(111)
-im = ax.imshow(np.log10(np.abs(propagated_ill)+1))
-plt.colorbar(im)
+#ill = Sprobe.data[0]
+#propagated_ill = g.propagator.fw(ill)
+#fig = plt.figure()
+#ax = fig.add_subplot(111)
+#im = ax.imshow(np.log10(np.abs(propagated_ill)+1))
+#plt.colorbar(im)
 
 factor = 1E9
-plt.figure()
-plt.subplot(121)
-plt.suptitle('Loaded 2d probe. psize=%f nm \n axes here are correct. defined in sample plane'%(Sprobe.psize[0]*1E9))
-plt.imshow((abs(np.squeeze(Sprobe.data))), cmap='jet', interpolation='none', extent=[-factor*Sprobe.shape[1]/2*Sprobe.psize[0], factor*Sprobe.shape[1]/2*Sprobe.psize[0], -factor*Sprobe.shape[2]/2*Sprobe.psize[1],factor*Sprobe.shape[2]/2*Sprobe.psize[1]]) 
-plt.title('Amplitude')
-plt.xlabel('y [nm]'); plt.ylabel('z [nm]');plt.colorbar()
-plt.subplot(122)
-plt.imshow(np.angle(np.squeeze(Sprobe.data)), cmap='jet', interpolation='none', extent=[-factor*Sprobe.shape[1]/2*Sprobe.psize[0], factor*Sprobe.shape[1]/2*Sprobe.psize[0], -factor*Sprobe.shape[2]/2*Sprobe.psize[1],factor*Sprobe.shape[2]/2*Sprobe.psize[1]])
-plt.title('Phase')
-plt.xlabel('y [nm]'); plt.colorbar()
-
+#plt.figure()
+#plt.subplot(121)
+#plt.suptitle('Loaded 2d probe. psize=%f nm \n axes here are correct. defined in sample plane'%(Sprobe.psize[0]*1E9))
+#plt.imshow((abs(np.squeeze(Sprobe.data))), cmap='jet', interpolation='none', extent=[-factor*Sprobe.shape[1]/2*Sprobe.psize[0], factor*Sprobe.shape[1]/2*Sprobe.psize[0], -factor*Sprobe.shape[2]/2*Sprobe.psize[1],factor*Sprobe.shape[2]/2*Sprobe.psize[1]]) 
+#plt.title('Amplitude')
+#plt.xlabel('y [nm]'); plt.ylabel('z [nm]');plt.colorbar()
+#plt.subplot(122)
+#plt.imshow(np.angle(np.squeeze(Sprobe.data)), cmap='jet', interpolation='none', extent=[-factor*Sprobe.shape[1]/2*Sprobe.psize[0], factor*Sprobe.shape[1]/2*Sprobe.psize[0], -factor*Sprobe.shape[2]/2*Sprobe.psize[1],factor*Sprobe.shape[2]/2*Sprobe.psize[1]])
+#plt.title('Phase')
+#plt.xlabel('y [nm]'); plt.colorbar()
+#
 
 
 #%%
@@ -901,7 +882,6 @@ def plot3ddata(data):
     plt.xlabel('r3'); plt.ylabel('r1')
     
 plot3ddata(np.squeeze(Sloaded_probe_3d.data))
-
 #Sloaded_probe_3d.data ( x, z, y)
 """ notation guide
 extent : scalars (left, right, bottom, top)
@@ -921,7 +901,7 @@ Sprobe_3d.shape[2] ~z
 diff_Cont = ptypy.core.classes.Container(ID='Cdiff', data_type='real', data_dims=3)
 pr_shape = (Npos,)+ tuple(g.shape)
 # define diff3 to ease the xrd coding (so I can just copy paste)
-diff3 = diff_Cont.new_storage(psize=np.array([ g.dq3, g.dq1, g.dq2]), shape=pr_shape)# add center to ba at qabs ? 
+#diff3 = diff_Cont.new_storage(psize=np.array([ g.dq3, g.dq1, g.dq2]), shape=pr_shape)# add center to ba at qabs ? 
 
 # Calculate diffraction patterns by using the geometry's propagator. all in 3d
 # todo is this OK lam factor?
@@ -942,17 +922,15 @@ for v in views:
 #        
 
 
-
-
-#np.save(r'C:\Users\Sanna\Documents\GitHub\simulated_nanodiffraction\170nm_diffraction_sim_circ',diff2)
-
-
-diff3.fill(np.array(diff2))
+#diff3.fill(np.array(diff2))
+plt.figure()
+plt.imshow(diff2[200][25],cmap='jet')
 #del diff2
 del (exit_wave,prop_exit_wave)
 
-#diff3
 
+#plt.figure()
+#plt.imshow(diff3.data[200,25],cmap='jet')
 
 # make 0 values white instead of colored
 #for diff in diff2:
@@ -977,31 +955,31 @@ del (exit_wave,prop_exit_wave)
 # plot single postion diffraction in 3 projections
 #-----------------------------------------------------------------
 
-position = int(len(diff2)/2)# 357# 524
+#position = int(len(diff2)/2)# 357# 524
 
-plt.figure()# extent guide: extent : scalars (left, right, bottom, top)
-plt.suptitle('Final diffraction pattern in skewed system', fontsize=13)
-plt.subplot(221)
-plt.imshow(np.sum(diff2[position],axis=0),cmap='jet')
-plt.ylabel('$q_1$') ; plt.xlabel('$q_2$') #[$\mathrm{\AA^{-1}}$]
-
-#1 and 2 
-# xzy
-# 3 1 2 
-
-plt.subplot(222)
-plt.imshow(np.sum(diff2[position],axis=1),cmap='jet')
-plt.ylabel('$q_3$') ; plt.xlabel('$q_2$') #[$\mathrm{\AA^{-1}}$]
-
-plt.subplot(223)
-plt.imshow(np.sum(diff2[position],axis=2),cmap='jet')#, extent = [ -(g.dq1*g.shape[1]/2 )*rec_fact, g.dq1*g.shape[1]/2*rec_fact, -g.dq2*g.shape[2]/2*rec_fact, g.dq2*g.shape[2]/2*rec_fact], interpolation='none',cmap='jet')
-plt.ylabel('$q_3$') ; plt.xlabel('$q_1$')  #[$\mathrm{\AA^{-1}}$]
+#plt.figure()# extent guide: extent : scalars (left, right, bottom, top)
+#plt.suptitle('Final diffraction pattern in skewed system', fontsize=13)
+#plt.subplot(221)
+#plt.imshow(np.sum(diff2[position],axis=0),cmap='jet')
+#plt.ylabel('$q_1$') ; plt.xlabel('$q_2$') #[$\mathrm{\AA^{-1}}$]
+#
+##1 and 2 
+## xzy
+## 3 1 2 
+#
+#plt.subplot(222)
+#plt.imshow(np.sum(diff2[position],axis=1),cmap='jet')
+#plt.ylabel('$q_3$') ; plt.xlabel('$q_2$') #[$\mathrm{\AA^{-1}}$]
+#
+#plt.subplot(223)
+#plt.imshow(np.sum(diff2[position],axis=2),cmap='jet')#, extent = [ -(g.dq1*g.shape[1]/2 )*rec_fact, g.dq1*g.shape[1]/2*rec_fact, -g.dq2*g.shape[2]/2*rec_fact, g.dq2*g.shape[2]/2*rec_fact], interpolation='none',cmap='jet')
+#plt.ylabel('$q_3$') ; plt.xlabel('$q_1$')  #[$\mathrm{\AA^{-1}}$]
 
 #plt.savefig('aa')
 #%%
 # plot object and diffraction pattern at the same time. Wrong axes here!?!?
 #----------------------------------
-
+#
 #plot_view = 0
 ##357#Npos/2 #which view to plot
 #factor = 1E6
@@ -1044,76 +1022,6 @@ def make_finite(matrix):
     mask = np.isinf(matrix)
     matrix[mask] = 0
     return matrix
-
-#%%
-##-----------------------------------------------------------------------------
-## visulaize probe in 3d. 
-## visualize diffraction in 3d. a working slice plot
-##-----------------------------------------------------------------------------
-#def slice_plot():
-data = np.log10(abs(loaded_probeView.data))
-data[data==-np.inf]=0
-mlab_xcut = views[0].shape[0]/2 # which y-z-cut to plot
-mlab_zcut = views[0].shape[2]/2
-mlab_ycut = views[0].shape[1]/2
-#mlab.figure()
-#mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(data),
-#                            plane_orientation='x_axes',
-#                            slice_index=mlab_xcut,
-#                            colormap = 'jet'
-#                        )
-#mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(data),
-#                            plane_orientation='y_axes',
-#                            slice_index=mlab_ycut,
-#                            colormap = 'jet'
-#                        )
-#mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(data),
-#                            plane_orientation='z_axes',
-#                            slice_index=mlab_zcut,
-#                            colormap = 'jet'
-#                            )
-#mlab.outline()
-# TODO scale correctly
-#frame2=357
-## 3d cut-plot of the diffraction 
-#data = (abs(diff2[frame2]))
-#data[data==-np.inf]=0
-#mlab.figure()
-#mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(data),
-#                            plane_orientation='x_axes',
-#                            slice_index=mlab_xcut,
-#                            colormap = 'jet'
-#                        )
-#mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(data),
-#                            plane_orientation='y_axes',
-#                            slice_index=mlab_ycut,
-#                            colormap = 'jet'
-#                        )
-#mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(data),
-#                            plane_orientation='z_axes',
-#                            slice_index=mlab_zcut,
-#                            colormap = 'jet'
-#                            )
-#mlab.outline()
-
-#%%
-#-----------------------------------------------------------------------------
-# Isosurface of diffraction 3d.
-#-----------------------------------------------------------------------------
-#frame3 = 357
-#data43 = np.copy(diff2[frame3])
-#data43[np.isinf(data43)] = np.nan
-#fact_ii = 1E-9
-#
-#mlab.figure(bgcolor=(1,1, 1),fgcolor=(0,0,0))
-## more data for higher contours # no good if not log
-#xmin=-(g.dq3*g.shape[0]*fact_ii)/4.0; xmax = (g.dq3*g.shape[0]*fact_ii)/4.0; ymin = -(g.dq1* g.shape[1]*fact_ii)/4.0; ymax = (g.dq1* g.shape[1]*fact_ii)/4.0; zmin=-(g.dq2* g.shape[2]*fact_ii)/2.0; zmax = (g.dq2* g.shape[2]*fact_ii)/2.0
-#obj1 = mlab.contour3d( (data43), contours=3, opacity=0.9, colormap ='jet', line_width = 4, transparent=False, extent=[ xmin,xmax,ymin,ymax,zmin,zmax])
-#maxes = mlab.axes(color=(0,0,0),nb_labels=5,ranges=[xmin,xmax,ymin,ymax,zmin,zmax])
-##maxes.axes.fly_mode='closest_triad'
-#mlab.xlabel('$q_3$ [$nm^{-1}$]'); mlab.ylabel('$q1$ [$nm^{-1}$]'); mlab.zlabel('$q2$ [$nm^{-1}$]')
-#
-
 
 #%%
 # ------------------------------------------------------    
@@ -1175,20 +1083,12 @@ frame = int(len(obj_storage.views)/2)
 #for frame in frames:
 #    plot_probe_sample(frame)
 
-#%%
-# --------------------------------------------
-# Visualize the probe positions along the scan
-# --------------------------------------------
-
-
-
 
 #%%
 
-# Reconstruct the numerical data
+# Reconstruct the numerical 3D data
 # ------------------------------
 
-# Here I compare different algorithms and scaling options.
 algorithm = 'PIE'
 
 # Keep a copy of the object storage, and fill the actual one with an
@@ -1284,8 +1184,8 @@ if algorithm == 'OS':
         obj_error_ = 0.0
         for j in range(len(views)):
             prop = g.propagator.fw(views[j].data * loaded_probeView.data)
-            criterion_ += np.sum(np.sqrt(diff3.data[j]) - np.abs(prop))**2
-            prop_ = np.sqrt(diff3.data[j]) * np.exp(1j * np.angle(prop))
+            criterion_ += np.sum(np.sqrt(diff2[j]) - np.abs(prop))**2
+            prop_ = np.sqrt(diff2[j]) * np.exp(1j * np.angle(prop))
             gradient = 2 * loaded_probeView.data * g.propagator.bw(prop - prop_)
             views[j].data -= beta * gradient * scaling[views[j]]
         errors.append(np.abs(obj_storage.data - S_true.data).sum())
@@ -1309,11 +1209,6 @@ if algorithm == 'OS':
             plt.draw()
             plt.pause(.01)
 
-
-plt.figure()
-plt.imshow(np.log10(abs(sum(sum(diff3.data)))))
-plt.figure()
-plt.imshow(np.angle(loaded_probeView.data[0]))
 # Here's a PIE/cPIE implementation
 if algorithm == 'PIE':
     beta = 1.0
@@ -1328,8 +1223,8 @@ if algorithm == 'PIE':
 
             exit_ = views[j].data * loaded_probeView.data
             prop = g.propagator.fw(exit_)
-            ferrors_.append(np.abs(prop)**2 - diff3.data[j])
-            prop[:] = np.sqrt(diff3.data[j]) * np.exp(1j * np.angle(prop))
+            ferrors_.append(np.abs(prop)**2 - diff2[j])
+            prop[:] = np.sqrt(diff2[j]) * np.exp(1j * np.angle(prop))
             exit = g.propagator.bw(prop)
             # ePIE scaling (Maiden2009)
             #SH: det här är väl  J.M. Rodenburg and H.M.L Faulkner 2004, jag skrev exakt såhär baserat på det peket.
@@ -1372,7 +1267,7 @@ if algorithm == 'DM':
         Snorm[views[j]] += np.abs(loaded_probeView.data)**2
 
     # iterate
-    for i in range(3):
+    for i in range(100):
         print( i)
         #TODO this is not defined anywhere
         ferrors_ = []
@@ -1380,7 +1275,7 @@ if algorithm == 'DM':
         for j in range(len(views)):
             # in DM, you propagate the following linear combination
             im = g.propagator.fw((1 + alpha) * loaded_probeView.data * views[j].data - alpha * exitwaves[j])
-            im = np.sqrt(diff3.data[j]) * np.exp(1j * np.angle(im))
+            im = np.sqrt(diff2[j]) * np.exp(1j * np.angle(im))
             exitwaves[j][:] += g.propagator.bw(im) - views[j].data * loaded_probeView.data
         # object update, now skipping the iteration because the probe is constant
         obj_storage.fill(0.0)
@@ -1390,8 +1285,6 @@ if algorithm == 'DM':
         errors.append(np.abs(obj_storage.data - S_true.data).sum())
         ferrors.append(np.mean(ferrors_))
 
-
-        fig, ax = plt.subplots(ncols=4)
         if not (i % 5):
             ax[0].clear()
             ax[0].plot(errors/errors[0])
@@ -1533,9 +1426,3 @@ plt.tight_layout()
 # plt.savefig("\savefig\iter%"%i)
 # save as array and plot afterwards
 plt.draw()
-
-plt.figure()
-plt.imshow(abs(loaded_probeView.data[xcut]))
-
-
-              

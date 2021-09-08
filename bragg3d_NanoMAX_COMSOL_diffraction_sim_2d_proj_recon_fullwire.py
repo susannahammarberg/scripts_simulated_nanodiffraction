@@ -397,7 +397,7 @@ def scatter_interpol():
     plt.title('interpolated displacement')
     plt.colorbar(sc); plt.axis('scaled')
     ax.set_xlabel('x [m]'); ax.set_ylabel('y [m]'); ax.set_zlabel('z [m]')
-scatter_interpol()
+#scatter_interpol()
 #%%
 #Calculate the strain
 #-----------------------------------------------------
@@ -1174,7 +1174,7 @@ if algorithm == 'PIE':
     
     errors = []
     ferrors = []
-    for i in range(3):
+    for i in range(10):
         print('iteration ', i)
         ferrors_ = []
         for j in range(len(views)):
