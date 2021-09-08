@@ -58,7 +58,8 @@ from ptypy import utils as u
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D #needed for 3d scatter plot 
+
 #import mayavi.mlab as mlab
 import scipy.interpolate as inter
 import sys
@@ -307,7 +308,7 @@ elif domain =='InP_357911':
 elif domain == None:
     raw_data = np.asarray(file1)
 else:
-    sys.exit('u shose the wrong domain number')
+    sys.exit('u chose the wrong domain number')
     
     
 # check the units
@@ -330,15 +331,20 @@ del file1
 # Make 3d scatter plot of the COMSOL raw data
 #------------------------------------------------------
 #TODO  something is not working in python3
-def scatter_comsol():
+def scatter_comsol(raw_data,step,title):
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    step = 20
-    sc=ax.scatter(raw_data[::step,0],raw_data[::step,1],raw_data[::step,2], c=raw_data[::step,3], marker ='o', cmap='jet')#,alpha=1)
-    plt.title('displacement from comsol, every %d:th point'%step)
+    ax = fig.add_subplot( projection='3d')
+    step = 200
+    sc = ax.scatter(raw_data[::step,0],raw_data[::step,1],raw_data[::step,2], c=raw_data[::step,3], marker ='o', cmap='jet')#,alpha=1)
+   
+    plt.title( title + 'Every %d:th point'%step)
     plt.colorbar(sc); plt.axis('scaled')
     ax.set_xlabel('x [m]'); ax.set_ylabel('y [m]'); ax.set_zlabel('z [m]')
-#scatter_comsol()
+
+
+
+scatter_comsol222(raw_data,step=200, title = 'Displacement from comsol')
+np.save('raw_comsol_data',raw_data)
 
 
 
@@ -398,7 +404,7 @@ def scatter_interpol():
     plt.title('interpolated displacement')
     plt.colorbar(sc); plt.axis('scaled')
     ax.set_xlabel('x [m]'); ax.set_ylabel('y [m]'); ax.set_zlabel('z [m]')
-#scatter_interpol()
+scatter_interpol()
 #%%
 #Calculate the strain
 #-----------------------------------------------------
