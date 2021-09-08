@@ -726,8 +726,7 @@ if choise == 'gauss':
     Sprobe.data = np.roll(np.exp(-zi**2 / (2 * (std_dev)**2) - yi**2 / (2 * (std_dev)**2)), 100, axis=1)
 
 elif choise == 'real':   
-    
-    loaded_profile = np.load('C:/Users/Sanna/Documents/beamtime/NanoMAX062017/Analysis_ptypy/nice_probe_ptyrfiles/scan10/probe10_focus.npy')
+    loaded_profile = np.load(r'C:\Users\Sanna\Documents\Simulations\probe10_focus.npy')
     # center the probe (cut out the center part)
     ###################
     "               OOOOOOOOOOOOOOOBS ROTATE. rot90,3 is correct"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

@@ -397,7 +397,7 @@ def scatter_interpol():
     plt.title('interpolated displacement')
     plt.colorbar(sc); plt.axis('scaled')
     ax.set_xlabel('x [m]'); ax.set_ylabel('y [m]'); ax.set_zlabel('z [m]')
-#scatter_interpol()
+scatter_interpol()
 #%%
 #Calculate the strain
 #-----------------------------------------------------
@@ -410,6 +410,7 @@ displacement_slice_NWlength = np.fliplr(interpol_data[int(g.shape[0]/2)].T)[75:1
 
 # ska man använda den Q-vektor som sätts at theta, alltså det theta om mäts upp ~~8 deg istället för detta som motsvarar 10.54
 
+# np graient should be more correct
 strain_dwdz2 = np.diff((displacement_slice ) , axis = 1, append=0) /dz
 strain_dwdz = np.gradient(displacement_slice , dz) 
 
@@ -424,7 +425,8 @@ def plot_strain():
     plt.imshow((interpol_data)[int(g.shape[0]/2)],cmap='jet', origin='lower')
     plt.colorbar()
     
-    dz2 = zz[0,256,1] - zz[0,255,0] # dont know why this is different from dz 
+    
+    dz2 = zz[0,-1,0] - zz[0,-2,0] # dont know why this is different from dz (Becauze dz is scanning positions, and we dont scan in z but we have resolutrion oin z.)
     dy2 = yy[0,0,1] - yy[0,0,0]
     plt.figure()
     plt.title('2d slice of displacement')
@@ -439,10 +441,10 @@ def plot_strain():
     plt.colorbar(orientation='horizontal')
     
     plt.figure()    
-    plt.imshow(100*strain_dwdz2,cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
+    plt.imshow(100*strain_dwdz,cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
     #plt.imshow(100*strain_dwdz[1],cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
-    #plt.title('Strain calc with np.gradient [%]')
-    plt.title('Strain calc with np.diff [%]')
+    plt.title('Strain calc with np.gradient [%]')
+    #plt.title('Strain calc with np.diff [%]')
     plt.xlabel('z [um]')
     plt.ylabel('y [um]')
     plt.tight_layout()
@@ -626,21 +628,21 @@ obj_storage.data = obj_storage_natural.data
 # CAN NOT PLOT THE SKEWED SYSTEM
 #---------------------------------------------------
 
-#prop_data = abs(g.propagator.fw(views[0].data))**2   #v.data * probeView.data
-##try BasicBragg3dPropagator() ?
-#inx_slice = g.shape[0]/2
+prop_data = abs(g.propagator.fw(views[50].data))**2   #v.data * probeView.data
+#try BasicBragg3dPropagator() ?
+inx_slice = int(g.shape[0]/2)
 
-#plt.figure()
-#plt.suptitle('Test of propagator, without using any probe')
-#plt.subplot(211)
-## TODO not correct to take the max nd min here, right. it will give the max of the total thing
-#plt.imshow(np.abs(views[0].data[inx_slice]), cmap = 'jet')#, extent = [factor*yy.min(),factor*yy.max(), factor*zz.min(), factor*zz.max()])
-#plt.title('view 0')
-#plt.xlabel('y [nm]'); plt.ylabel('z [nm]')
-#plt.subplot(212)
-#plt.imshow(prop_data[inx_slice], cmap = 'jet')
-#plt.title('2D cut of the resulting diffraction pattern') 
-#
+plt.figure()
+plt.suptitle('Test of propagator, without using any probe')
+plt.subplot(211)
+# TODO not correct to take the max nd min here, right. it will give the max of the total thing
+plt.imshow(np.abs(views[0].data[inx_slice]), cmap = 'jet')#, extent = [factor*yy.min(),factor*yy.max(), factor*zz.min(), factor*zz.max()])
+plt.title('view 0')
+plt.xlabel('y [nm]'); plt.ylabel('z [nm]')
+plt.subplot(212)
+plt.imshow(prop_data[inx_slice], cmap = 'jet')
+plt.title('2D cut of the resulting diffraction pattern') 
+
 
 #%%
 ##--------
@@ -732,7 +734,7 @@ if choise == 'gauss':
 
 elif choise == 'real':   
     
-    loaded_profile = np.load('probe10_focus.npy')
+    loaded_profile = np.load(r'C:\Users\Sanna\Documents\Simulations\probe10_focus.npy')
     # center the probe (cut out the center part)
     ###################
     "               OOOOOOOOOOOOOOOBS ROTATE. rot90,3 is correct"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -1084,10 +1086,9 @@ frame = int(len(obj_storage.views)/2)
 
 #%%
 
-# Reconstruct the numerical data
+# Reconstruct projections of the data 
 # ------------------------------
 
-# Here I compare different algorithms and scaling options.
 algorithm = 'PIE'
 
 # Keep a copy of the object storage, and fill the actual one with an
@@ -1163,50 +1164,8 @@ obj_storage.fill(0.0)
 # S.data[:] = np.random.rand(*S.data.shape) * np.exp(1j * (2 * np.random.rand(*S.data.shape) - 1) * np.pi)
 
 storage_save = []
-# Here's an implementation of the OS (preconditioned PIE) algorithm from
-# Pateras' thesis.
-if algorithm == 'OS':
-    alpha, beta = .1, 1.0
-    fig, ax = plt.subplots(ncols=4)
-    errors = []
-    criterion = []
-    # first calculate the weighting factor Lambda, here called scaling = 1/Lambda
-    scaling = obj_storage.copy(owner=obj_container, ID='Sscaling')
-    scaling.fill(alpha)
-    for v in views:
-        scaling[v] += np.abs(loaded_probeView.data)**2
-    scaling.data[:] = 1 / scaling.data
-    # then iterate with the appropriate update rule
-    for i in range(100):
-        print( i)
-        criterion_ = 0.0
-        obj_error_ = 0.0
-        for j in range(len(views)):
-            prop = g.propagator.fw(views[j].data * loaded_probeView.data)
-            criterion_ += np.sum(np.sqrt(diff2[j]) - np.abs(prop))**2
-            prop_ = np.sqrt(diff2[j]) * np.exp(1j * np.angle(prop))
-            gradient = 2 * loaded_probeView.data * g.propagator.bw(prop - prop_)
-            views[j].data -= beta * gradient * scaling[views[j]]
-        errors.append(np.abs(obj_storage.data - S_true.data).sum())
-        criterion.append(criterion_)
 
-        if not (i % 5):
-            ax[0].clear()
-            ax[0].plot(errors/errors[0])
-            #ax[0].plot(criterion/criterion[0])
-            ax[1].clear()
-            S_cart = g.coordinate_shift(obj_storage, input_space='real', input_system='natural', keep_dims=False)
-            x, z, y = S_cart.grids()
-            ax[1].imshow(np.mean(np.abs(S_cart.data[0]), axis=1).T, extent=[x.min(), x.max(), y.min(), y.max()], interpolation='none', origin='lower')
-            plt.setp(ax[1], ylabel='y', xlabel='x', title='top view')
-            ax[2].clear()
-            ax[2].imshow(np.mean(np.abs(S_cart.data[0]), axis=2).T, extent=[x.min(), x.max(), z.min(), z.max()], interpolation='none', origin='lower')
-            plt.setp(ax[2], ylabel='z', xlabel='x', title='side view')
-            # SH: added beam view
-            ax[3].imshow(np.mean(np.abs(S_cart.data[0]) , axis=0).T, extent=[z.min(), z.max(),y.min(), y.max()], interpolation='none', origin='lower')
-            plt.setp(ax[3], ylabel='y', xlabel='z', title='front view')
-            plt.draw()
-            plt.pause(.01)
+projection = int(loaded_probeView.shape[0]/2)
 
 # Here's a PIE/cPIE implementation
 if algorithm == 'PIE':
@@ -1216,32 +1175,27 @@ if algorithm == 'PIE':
     errors = []
     ferrors = []
     for i in range(3):
-        print(i)
+        print('iteration ', i)
         ferrors_ = []
         for j in range(len(views)):
 
-            exit_ = views[j].data * loaded_probeView.data
+            exit_ = views[j].data[projection] * loaded_probeView.data[projection]
+            #TODO this g is a 3d bragg thing. its not a problem, it is only afft?
             prop = g.propagator.fw(exit_)
-            ferrors_.append(np.abs(prop)**2 - diff2[j])
-            prop[:] = np.sqrt(diff2[j]) * np.exp(1j * np.angle(prop))
+            ferrors_.append(np.abs(prop)**2 - diff2[j][:][projection])
+            prop = np.sqrt(diff2[j][:][projection]) * np.exp(1j * np.angle(prop))
             exit = g.propagator.bw(prop)
             # ePIE scaling (Maiden2009)
             #SH: det här är väl  J.M. Rodenburg and H.M.L Faulkner 2004, jag skrev exakt såhär baserat på det peket.
-            views[j].data += beta * np.conj(loaded_probeView.data) / (np.abs(loaded_probeView.data).max())**2 * (exit - exit_)
+            views[j].data[projection] += beta * np.conj(loaded_probeView.data[projection]) / (np.abs(loaded_probeView.data[projection]).max())**2 * (exit - exit_)
             # PIE and cPIE scaling (Rodenburg2004 and Godard2011b)
             #views[j].data += beta * np.abs(loaded_probeView.data) / np.abs(loaded_probeView.data).max() * np.conj(loaded_probeView.data) / (np.abs(loaded_probeView.data)**2 + eps) * (exit - exit_)
             
-            # probe function is not updating
-            #constraints: not sure if optimized
-            #prova 23 37 (från laptop scipt) #9pixlar diame
-            obj_storage.data[0][0:19] = 0.00001 * np.exp(1j*np.angle(obj_storage.data[0][0:19]))
-            #20200325   
-            obj_storage.data[0][29:]  = 0.00001 * np.exp(1j*np.angle( obj_storage.data[0][29:]))
 
-        errors.append(np.abs(obj_storage.data - S_true.data).sum())
+        errors.append(np.abs(obj_storage.data[projection] - S_true.data[projection]).sum())
         ferrors.append(np.mean(ferrors_))
 
-
+        #TODO only save the projection
         if not (i % 5):
             
             
@@ -1318,6 +1272,8 @@ plt.show()
 
 
 for store in storage_save:
+    
+    #only the projection will be correct
 
     fig = plt.figure()    # row col  row col
     ax0 = plt.subplot2grid((3, 3), (0, 0), colspan=3)
