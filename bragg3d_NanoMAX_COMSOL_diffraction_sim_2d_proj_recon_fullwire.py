@@ -90,10 +90,13 @@ matplotlib.use( 'Qt5agg' )
 # of rocking curve positions, the first element of the psize denotes theta
 # step in degrees. 'Distance' is to the detector. This will define
 # the pixel size in the object plane (g.resolution)
-#InP:10.91  GaInP: 11.09  #51
+#InP:10.91  GaInP: 11.09  #2017
 
-#REAl
-g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(51, 151, 151), energy=9.49, distance=1.149, theta_bragg=10.91, propagation = "farfield")  
+# Real 2020
+g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(62, 170, 170), energy=10.0, distance=1.0, theta_bragg=8.8, propagation = "farfield")  
+
+#REAl 2017
+#g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(51, 151, 151), energy=9.49, distance=1.149, theta_bragg=10.91, propagation = "farfield")  
 
 #starting point
 #g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(1*1E-2, 55*1E-6, 55*1E-6), shape=(60, 128, 128), energy=20.0, distance=1.0, theta_bragg=10.91, propagation = "farfield") 
@@ -124,8 +127,8 @@ obj_container = ptypy.core.Container( ID='Cobj',data_type=np.complex128, data_di
 ##%%
 ## Define scanning positions in x,z,y
 #starting point
-Ny = 11
-Nz = 50
+Ny = 13
+Nz = 67
 
 #~real
 #Ny = 11
@@ -135,9 +138,14 @@ Npos = Nz*Ny
 positions = np.zeros((Npos,3))
 # stepsize as fed to motors
 
-#starting point
+# starting point 2020 (dont know)
 dy_prime = 20.0e-9
 dz_prime = 20.0e-9
+
+
+#starting point 2017
+#dy_prime = 20.0e-9
+#dz_prime = 20.0e-9
 
 
 #real
