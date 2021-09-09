@@ -297,9 +297,10 @@ elif domain =='InP_357911':
     for row in file1:
         # if its not 3, add it
         if np.floor(row[-1]) in (3,5,7,9,11):
+            print(np.floor(row[-1]))
             raw_data.append(row)        
         else:
-            # set the unwanted data to 0 (InP segment)
+            # set the unwanted data to 0 (GaInP segments)
             row[-2] = 0
             raw_data.append(row)
 
@@ -329,22 +330,10 @@ del file1
 #%%
 #-----------------------------------------------------
 # Make 3d scatter plot of the COMSOL raw data
+# (save to file and plot from separate script)
 #------------------------------------------------------
-#TODO  something is not working in python3
-def scatter_comsol(raw_data,step,title):
-    fig = plt.figure()
-    ax = fig.add_subplot( projection='3d')
-    step = 200
-    sc = ax.scatter(raw_data[::step,0],raw_data[::step,1],raw_data[::step,2], c=raw_data[::step,3], marker ='o', cmap='jet')#,alpha=1)
-   
-    plt.title( title + 'Every %d:th point'%step)
-    plt.colorbar(sc); plt.axis('scaled')
-    ax.set_xlabel('x [m]'); ax.set_ylabel('y [m]'); ax.set_zlabel('z [m]')
 
-
-
-scatter_comsol222(raw_data,step=200, title = 'Displacement from comsol')
-np.save('raw_comsol_data',raw_data)
+#np.save('raw_comsol_data',raw_data)
 
 
 

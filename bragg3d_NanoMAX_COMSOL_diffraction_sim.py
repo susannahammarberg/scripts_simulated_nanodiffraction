@@ -330,18 +330,10 @@ del file1
 #%%
 #-----------------------------------------------------
 # Make 3d scatter plot of the COMSOL raw data
+# (save to file and plot from separate script)
 #------------------------------------------------------
-#TODO  something is not working in python3
-def scatter_comsol():
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    step = 20
-    sc=ax.scatter(raw_data[::step,0],raw_data[::step,1],raw_data[::step,2], c=raw_data[::step,3], marker ='o', cmap='jet')#,alpha=1)
-    plt.title('displacement from comsol, every %d:th point'%step)
-    plt.colorbar(sc); plt.axis('scaled')
-    ax.set_xlabel('x [m]'); ax.set_ylabel('y [m]'); ax.set_zlabel('z [m]')
-#scatter_comsol()
 
+#np.save('raw_comsol_data',raw_data)
 
 
 

@@ -108,21 +108,6 @@ FOV = g.resolution * g.shape        #obs fov in the coordinate system reciprocal
 print( FOV)
 print( g.resolution)
 
-savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\%s'%date_str
-
-if not os.path.exists(savepath):
-    os.makedirs(savepath)
-    print('new folder in this savepath was created')
-    
-with open(savepath+'\\geometry.txt', 'w') as f:
-    
-    f.write('distance %.4e\n' % g.distance)
-    f.write('energy %.4e\n' % g.energy)
-    f.write('psize %.4e\n' % g.psize[0])
-    f.write('shape %d\n' % g.shape[0])
-    f.close()
-
-a='change' 
 #%%
 #---------------------------------------------------------
 # Create a container for the object and define views based on scaning postions.
@@ -234,8 +219,6 @@ zz = np.squeeze(zz)
 # define path to COMSOL data
 #path = 'C:/Users/Sanna/Documents/COMSOL/COMSOL_data/InGaP_middlesegment_variation/'
 #path = 'C:/Users/Sanna/Documents/COMSOL/COMSOL_data/'
-#path = 
-
 
 #sample = 'full_segmented_NW_InP_InGaP_20191029'     # updated version with strain mismatch 1.5
 ###sample = 'full_segmented_NW_InP_InGaP_20190828' (including 19 segment)
