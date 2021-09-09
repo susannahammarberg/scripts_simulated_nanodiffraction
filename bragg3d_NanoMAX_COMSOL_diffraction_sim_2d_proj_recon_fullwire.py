@@ -139,8 +139,8 @@ positions = np.zeros((Npos,3))
 # stepsize as fed to motors
 
 # starting point 2020 (dont know)
-dy_prime = 20.0e-9
-dz_prime = 20.0e-9
+dy_prime = 50.0e-9
+dz_prime = 50.0e-9
 
 
 #starting point 2017
@@ -164,8 +164,9 @@ dz = dz_prime
 #dz = dz_prime*g.costheta
 #dx = dz_prime*g.sintheta
 
-z_positions = np.repeat(dz*np.linspace(-np.round(Nz/2), Nz/2, Nz) +dz_center , Ny)
-y_positions = np.tile(dy*np.linspace(-np.round(Ny/2),Ny/2,Ny), Nz)
+z_positions = np.repeat( np.linspace(0,dz*(Nz-1),Nz) - (dz*(Nz-1)/2) - dz_center , Ny)
+y_positions = np.tile(np.linspace(0,dy*(Ny-1),Ny) - (dy*(Ny-1)/2), Nz)
+
 ## also x-positions changes a bit because the sample is tilted with an angle
 ## theta.  Use Nz here. No! I did not define the sample as being tilted in this 
 ## simulation. remove x_positions
