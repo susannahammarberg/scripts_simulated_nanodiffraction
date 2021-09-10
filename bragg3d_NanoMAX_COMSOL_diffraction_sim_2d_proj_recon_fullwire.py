@@ -1094,19 +1094,15 @@ frame = int(len(obj_storage.views)/2)
 #for frame in frames:
 #    plot_probe_sample(frame)
 
-
 #%%
+#Prepare for reconstructions
+# Keep a copy of the object storage, and fill the actual one (obj_storage) with an
+# initial guess (like zeros everywhere).     plot it
 
-# Reconstruct projections of the data 
-# ------------------------------
-
-algorithm = 'PIE'
-
-# Keep a copy of the object storage, and fill the actual one with an
-# initial guess (like zeros everywhere).
 S_true = obj_storage.copy(owner=obj_container)
 
 S_true_cart = g.coordinate_shift(S_true, input_space='real', input_system='natural', keep_dims=False)
+
 x, z, y = S_true_cart.grids()
 xcut = int(S_true_cart.data.shape[1]/2)
 zcut = int(S_true_cart.data.shape[2]/2)
@@ -1147,36 +1143,28 @@ plt.setp(ax[1].xaxis.get_majorticklabels(), rotation=70)
 plt.tight_layout()
 plt.draw()
 
-#this part you can rerun
+
 #%%
+#%%
+
+# Reconstruct projections of the data 
+# ------------------------------
+
+algorithm = 'PIE'
+
+
+projection = int(loaded_probeView.shape[0]/2          +5     )
+
+
 print('Start reconstruction')
 # if you dont want to start over and just continue to iteratie, just comment this part out
 # zero everything
 obj_storage.fill(0.0)
 
-#S_cart = g.coordinate_shift(obj_storage, input_space='real', input_system='natural', keep_dims=False)
-#x, z, y = S_cart.grids()
-#ax[1].imshow(np.mean(np.abs(S_cart.data[0]), axis=1).T, extent=[x.min(), x.max(), y.min(), y.max()], interpolation='none', origin='lower')
-#plt.setp(ax[1], ylabel='y', xlabel='x', title='top view')
-#ax[2].clear()
-#ax[2].imshow(np.mean(np.abs(S_cart.data[0]), axis=2).T, extent=[x.min(), x.max(), z.min(), z.max()], interpolation='none', origin='lower')
-#plt.setp(ax[2], ylabel='z', xlabel='x', title='side view')
-#            # SH: added beam view
-#ax[3].imshow(np.mean(np.abs(S_cart.data[0]) , axis=0).T, extent=[z.min(), z.max(),y.min(), y.max()], interpolation='none', origin='lower')
-#plt.setp(ax[3], ylabel='y', xlabel='z', title='front view')
-
-
-#obj_storage.data[0][0:23] = 0
-#obj_storage.data[0][37:] = 0
-
-# unit magnitude, random phase:
-# S.data[:] = 1.0 * np.exp(1j * (2 * np.random.rand(*S.data.shape) - 1) * np.pi)
-# random magnitude, random phase
-# S.data[:] = np.random.rand(*S.data.shape) * np.exp(1j * (2 * np.random.rand(*S.data.shape) - 1) * np.pi)
 
 storage_save = []
 
-projection = int(loaded_probeView.shape[0]/2)
+
 
 # Here's a PIE/cPIE implementation
 if algorithm == 'PIE':
@@ -1185,7 +1173,7 @@ if algorithm == 'PIE':
     
     errors = []
     ferrors = []
-    for i in range(10):
+    for i in range(100):
         print('iteration ', i)
         ferrors_ = []
         for j in range(len(views)):
@@ -1207,7 +1195,8 @@ if algorithm == 'PIE':
         ferrors.append(np.mean(ferrors_))
 
         #TODO only save the projection
-        if not (i % 5):
+        save_iter_interval = 10
+        if not (i % save_iter_interval ):
             
             
 #            #save arrays instread of plottting to improve speed
@@ -1271,27 +1260,35 @@ if algorithm == 'DM':
 
 plt.show()
 
-savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\recons\%s'%date_str
+#%%
 
-for store in storage_save:
+savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\recons\%s_projection%i'%(date_str,projection)
+#only the projection will be correct    
+
+if not os.path.exists(savepath):
+    os.makedirs(savepath)
+    print('new folder in this savepath was created:')
+    print(savepath)
+
+np.save(savepath + '\\errors', errors)
+np.save(savepath + '\\ferrors', ferrors)
+
+
+for kk, store in enumerate(storage_save):
     
-    #only the projection will be correct    
-
-    if not os.path.exists(savepath):
-        os.makedirs(savepath)
-        print('new folder in this savepath was created:')
-        print(savepath)
-
+    iter_plotting = save_iter_interval*(kk+1)
+    print('iteration: ',iter_plotting )
     
     #save as np files and plot
     S_cart = g.coordinate_shift(store, input_space='real', input_system='natural', keep_dims=False)
-    np.save(savepath + '_object',np.squeeze(S_cart.data)[projection])
+    
+    np.save(savepath + '\\object_iter%i'%(iter_plotting),np.squeeze(S_cart.data)[projection])
     
     x, z, y = S_cart.grids()
     
-    np.save(savepath + '_x',x)
-    np.save(savepath + '_y',y)
-    np.save(savepath + '_z',z)
-    np.save(savepath + '_probe',loaded_probeView.data[projection])
+    np.save(savepath + '\\x_iter%i'%(iter_plotting),x)
+    np.save(savepath + '\\y_iter%i'%(iter_plotting),y)
+    np.save(savepath + '\\z_iter%i'%(iter_plotting),z)
+    np.save(savepath + '\\probe_iter%i'%(iter_plotting),loaded_probeView.data[projection])
     
     #OBS, verkar som att man kan spara storages i np.. testa att öppna. då kanske jag kan spara simulationen också. man kan ske kan spara views också då.
