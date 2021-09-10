@@ -63,8 +63,7 @@ from mpl_toolkits.mplot3d import Axes3D #needed for 3d scatter plot
 #import mayavi.mlab as mlab
 import scipy.interpolate as inter
 import sys
-sys.path.append(r'C:\Users\Susanna\Documents\Simulations\scripts\simulated_nanodiffraction') 
-
+sys.path.append(r"C:\Users\Sanna\Documents\Simulations\scripts_simulated_nanodiffraction")
 import os
 
 from read_COMSOL_data import rotate_data
@@ -306,7 +305,6 @@ elif domain =='InP_357911':
     for row in file1:
         # if its not 3, add it
         if np.floor(row[-1]) in (3,5,7,9,11):
-            print(np.floor(row[-1]))
             raw_data.append(row)        
         else:
             # set the unwanted data to 0 (GaInP segments)
@@ -339,7 +337,8 @@ del file1
 #%%
 #-----------------------------------------------------
 # Make 3d scatter plot of the COMSOL raw data
-# (save to file and plot from separate script)
+# (save to file and plot from separate script
+# scatter_3d_plot.py)
 #------------------------------------------------------
 
 #np.save('raw_comsol_data',raw_data)
@@ -402,7 +401,7 @@ def scatter_interpol():
     plt.title('interpolated displacement')
     plt.colorbar(sc); plt.axis('scaled')
     ax.set_xlabel('x [m]'); ax.set_ylabel('y [m]'); ax.set_zlabel('z [m]')
-scatter_interpol()
+#scatter_interpol()
 #%%
 #Calculate the strain
 #-----------------------------------------------------
@@ -757,16 +756,15 @@ elif choise == 'real':
     
 elif choise == 'real2020':   
 
-    loaded_profile = np.load(r'C:\Users\Sanna\Documents\Beamtime\NanoMAX_May2020\Analysis\siemensstar\scan14\probe14.npy')
+    loaded_profile = np.load(r'C:\Users\Sanna\Documents\Beamtime\NanoMAX_May2020\Analysis\siemensstar\scan14\np_save\probe14.npy')
     # take probe as it is after loading it with ptypy, then it should be rescaled. 
     # TODO I need to resample the probe to this pixel size
     
     "               OOOOOOOOOOOOOOOBS ROTATE. rot90,3 is correct"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    loaded_profile_cut = np.rot90(loaded_profile,3)
+    loaded_profile = np.rot90(loaded_profile,3)
     # save a psize, shape and the array data in the contaioner
     Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
-    #TODO why im i removing one pixel
-    Sprobe = Cprobe.new_storage(psize=g.resolution, shape=(1,170,170))#loaded_profile.shape)     
+    Sprobe = Cprobe.new_storage(psize=g.resolution, shape=(1,170,170))
     # fill storage
     Sprobe.fill(loaded_profile)
     zi, yi = Sprobe.grids()  

@@ -61,8 +61,9 @@ from mpl_toolkits.mplot3d import Axes3D
 import scipy.interpolate as inter
 import sys
 #sys.path.insert(0, r'C:\\ptypy_tmp\\tutorial\\Megan_scripts\\')
-sys.path.insert(0, r'C:\Users\Sanna\Documents\GitHub\simulated_nanodiffraction')
-#C:\Users\Sanna\Documents\GitHub\simulated_nanodiffraction
+
+sys.path.append(r"C:\Users\Sanna\Documents\Simulations\scripts_simulated_nanodiffraction")
+
 import read_COMSOL_data
 from read_COMSOL_data import rotate_data
 from read_COMSOL_data import calc_H111
