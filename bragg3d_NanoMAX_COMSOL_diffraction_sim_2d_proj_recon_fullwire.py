@@ -694,7 +694,7 @@ plt.title('2D cut of the resulting diffraction pattern')
 # TODO fill the probes into the storages for phase retrieval
 #---------------------------------------------------------
 
-choise = 'real'#sample_plane'            # 'square' 'loaded' 'circ' or 'real' 'gauss'
+choise = 'real2020'#sample_plane'            # 'square' 'loaded' 'circ' or 'real' 'gauss'
 
 if choise == 'circ':
     fsize = g.shape * g.resolution
@@ -755,7 +755,22 @@ elif choise == 'real':
     Sprobe.fill(1j*loaded_profile_cut)
     zi, yi = Sprobe.grids()
     
-#   
+elif choise == 'real2020':   
+
+    loaded_profile = np.load(r'C:\Users\Sanna\Documents\Beamtime\NanoMAX_May2020\Analysis\siemensstar\scan14\probe14.npy')
+    # take probe as it is after loading it with ptypy, then it should be rescaled. 
+    # TODO I need to resample the probe to this pixel size
+    
+    "               OOOOOOOOOOOOOOOBS ROTATE. rot90,3 is correct"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    loaded_profile_cut = np.rot90(loaded_profile,3)
+    # save a psize, shape and the array data in the contaioner
+    Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
+    #TODO why im i removing one pixel
+    Sprobe = Cprobe.new_storage(psize=g.resolution, shape=(1,170,170))#loaded_profile.shape)     
+    # fill storage
+    Sprobe.fill(loaded_profile)
+    zi, yi = Sprobe.grids()  
+    
 elif choise == 'sample_plane':    # this loads the probe in the sample plane not in focus. try this too
     from ptypy import io
 #    
@@ -796,8 +811,8 @@ fig = u.plot_storage(Sprobe, 11, channel='c')
 # photons to 1 billion
 #comment out to get normal fft
 nbr_photons = 1E9
-#Sprobe.data *= np.sqrt(nbr_photons/np.sum(Sprobe.data*Sprobe.data.conj()))
-#print( u.norm2(Sprobe.data)    )
+Sprobe.data *= np.sqrt(nbr_photons/np.sum(Sprobe.data*Sprobe.data.conj()))
+print( u.norm2(Sprobe.data)    )
 
 #import nmutils.utils
 # propager i nerfield
@@ -806,21 +821,17 @@ nbr_photons = 1E9
 # prepare in 3d
 Sloaded_probe_3d = g.prepare_3d_probe(Sprobe, system='natural', layer=0)#NOTE usually its the input system you specify but here its the output. Also there is an autocenter 
 loaded_probeView = Sloaded_probe_3d.views[0]
-""" TEMPORARY, for a probe that is defined only in amplitude, I REMOVEd THE PAHSE RAMPS THINGS ITHAT GET INT HE 3D PROBE AFTER EXTRUSSSSSSSION"""
-#loaded_probeView.data = abs(loaded_probeView.data) 
-
-
 
 
 # visualize 3d probe and probe propagated to transmission
 
 # propagate probe to transmission
-#ill = Sprobe.data[0]
-#propagated_ill = g.propagator.fw(ill)
-#fig = plt.figure()
-#ax = fig.add_subplot(111)
-#im = ax.imshow(np.log10(np.abs(propagated_ill)+1))
-#plt.colorbar(im)
+ill = Sprobe.data[0]
+propagated_ill = g.propagator.fw(ill)
+fig = plt.figure()
+ax = fig.add_subplot(111)
+im = ax.imshow(np.log10(np.abs(propagated_ill)+1))
+plt.colorbar(im)
 
 factor = 1E9
 #plt.figure()
