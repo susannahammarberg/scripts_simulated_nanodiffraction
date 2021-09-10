@@ -756,10 +756,7 @@ elif choise == 'real':
     
 elif choise == 'real2020':   
 
-    loaded_profile = np.load(r'C:\Users\Sanna\Documents\Beamtime\NanoMAX_May2020\Analysis\siemensstar\scan14\np_save\probe14.npy')
-    # take probe as it is after loading it with ptypy, then it should be rescaled. 
-    # TODO I need to resample the probe to this pixel size
-    
+    loaded_profile = np.load(r'C:\Users\Sanna\Documents\Beamtime\NanoMAX_May2020\Analysis\siemensstar\scan14\np_save\probe14.npy')    
     "               OOOOOOOOOOOOOOOBS ROTATE. rot90,3 is correct"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     loaded_profile = np.rot90(loaded_profile,3)
     # save a psize, shape and the array data in the contaioner
