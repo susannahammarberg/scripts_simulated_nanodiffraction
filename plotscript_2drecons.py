@@ -10,29 +10,35 @@ import matplotlib.pyplot as plt
 #from ptypy.core import View, Container, Storage, Base
 import os
 import sys
-
 sys.path.append(r"C:\Users\Sanna\Documents\Beamtime\NanoMAX_May2020\scripts")
-
 from plotPtypyResults import plot2drecons
 
+import matplotlib
+matplotlib.use( 'Qt5agg' )
 
 
-date_saved = 20210908
-openpath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\recons\%s'%date_saved
+date_saved = 20210910
+projection = 31
+itstr = 'iter0' 
 
-savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\plots\%s'%date_saved
+openpath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\recons\%s_projection%i'%(date_saved,projection)
 
-probe = np.load(openpath + '_probe.npy') 
-obj = np.load(openpath + '_object.npy', allow_pickle=True) 
-x = np.squeeze(np.load(openpath + '_x.npy')) 
-y = np.squeeze(np.load(openpath + '_y.npy')) 
-z = np.squeeze(np.load(openpath + '_z.npy')) 
+savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\plots\%s_projection%i'%(date_saved,projection)
+
+probe = np.load(openpath + '\\' + 'probe_%s.npy'%itstr) 
+
+obj = np.load(openpath + '\\'  + 'object_%s.npy'%itstr, allow_pickle=True) 
+x = np.squeeze(np.load(openpath + '\\' + 'x_%s.npy'%itstr)) 
+y = np.squeeze(np.load(openpath + '\\' + 'y_%s.npy'%itstr)) 
+z = np.squeeze(np.load(openpath + '\\' + 'z_%s.npy'%itstr)) 
+errors =
+ferrors = 
+
 
 #TODO which coordinate, x,y,z?
 psize = x[1,0,0]-x[0,0,0]
 
 extent = 1e6 * np.array([0,(obj.shape[1]-1)*psize, 0, (obj.shape[0]-1)*psize])
-
 
 
 plot2drecons(obj.T, probe, extent, savepath, save=False)
