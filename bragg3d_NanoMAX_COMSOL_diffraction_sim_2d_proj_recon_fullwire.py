@@ -756,12 +756,17 @@ elif choise == 'real':
     
 elif choise == 'real2020':   
 
-    loaded_profile = np.load(r'C:\Users\Sanna\Documents\Beamtime\NanoMAX_May2020\Analysis\siemensstar\scan14\np_save\probe14.npy')    
+    loaded_profile = np.load(r'C:\Users\Sanna\Documents\Beamtime\NanoMAX_May2020\Analysis\siemensstar\scan14\np_save\focus\probe14_focus.npy')    
     "               OOOOOOOOOOOOOOOBS ROTATE. rot90,3 is correct"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     loaded_profile = np.rot90(loaded_profile,3)
     # save a psize, shape and the array data in the contaioner
     Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
-    Sprobe = Cprobe.new_storage(psize=g.resolution, shape=(1,170,170))
+    #TODO this is pixel size in the transmission system. Should convert it to Bragg system?
+    # it is resampled to bragg geometry when you prepare it in 3d! 
+
+    Sprobe = Cprobe.new_storage(psize=[5.96673929e-08, 5.96673929e-08], shape=(1,128,128))
+
+    # In ptypy reconstruction: Probe recentered from (82.5020948929997, 81.8261553912669) to (85, 85)
     # fill storage
     Sprobe.fill(loaded_profile)
     zi, yi = Sprobe.grids()  
@@ -777,6 +782,7 @@ elif choise == 'sample_plane':    # this loads the probe in the sample plane not
     # save the psize, the shape and the array data in the contaioner
     #TODO is it correct with (1, 128,128)  etc?
     Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
+    #TODO is _psize correct?, that should be transmisssion resolution
     Sprobe = Cprobe.new_storage(psize=loaded_probe['_psize'], shape=loaded_probe['shape'])
     # fill storage
     Sprobe.fill(0.0)
@@ -801,23 +807,27 @@ elif choise == 'loaded':
     # reshape?
    
 fig = u.plot_storage(Sprobe, 11, channel='c') 
+plt.figure()
+plt.imshow(abs(np.squeeze(Sprobe.data)),cmap='jet')
 
 # In order to put some physics in the illumination we set the number of
 # photons to 1 billion
 #comment out to get normal fft
-nbr_photons = 1E9
-Sprobe.data *= np.sqrt(nbr_photons/np.sum(Sprobe.data*Sprobe.data.conj()))
-print( u.norm2(Sprobe.data)    )
+#nbr_photons = 1E9
+#Sprobe.data *= np.sqrt(nbr_photons/np.sum(Sprobe.data*Sprobe.data.conj()))
+#print( u.norm2(Sprobe.data)    )
 
 #import nmutils.utils
 # propager i nerfield
 #field3d = nmutils.utils.propagateNearfield(Sprobe.data[0], g.psize, -100E-9, g.energy)
 
 # prepare in 3d
+# This will also resample the probe to the Bragg geometry g with the reolution of g!
 Sloaded_probe_3d = g.prepare_3d_probe(Sprobe, system='natural', layer=0)#NOTE usually its the input system you specify but here its the output. Also there is an autocenter 
 loaded_probeView = Sloaded_probe_3d.views[0]
 
-
+plt.figure()
+plt.imshow(abs(np.squeeze(Sloaded_probe_3d.data)[31]),cmap='jet')
 # visualize 3d probe and probe propagated to transmission
 
 # propagate probe to transmission
@@ -1153,7 +1163,7 @@ plt.draw()
 algorithm = 'PIE'
 
 
-projection = int(loaded_probeView.shape[0]/2          +5     )
+projection = int(loaded_probeView.shape[0]/2          +5    +5  +5     +5)
 
 
 print('Start reconstruction')
