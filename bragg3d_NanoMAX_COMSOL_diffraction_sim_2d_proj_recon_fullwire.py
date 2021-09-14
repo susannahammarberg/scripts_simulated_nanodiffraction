@@ -813,13 +813,13 @@ plt.imshow(abs(np.squeeze(Sprobe.data)),cmap='jet')
 # In order to put some physics in the illumination we set the number of
 # photons to 1 billion
 #comment out to get normal fft
-#nbr_photons = 1E9
-#Sprobe.data *= np.sqrt(nbr_photons/np.sum(Sprobe.data*Sprobe.data.conj()))
-#print( u.norm2(Sprobe.data)    )
+nbr_photons = 1E9
+Sprobe.data *= np.sqrt(nbr_photons/np.sum(Sprobe.data*Sprobe.data.conj()))
+print( u.norm2(Sprobe.data)    )
 
 #import nmutils.utils
 # propager i nerfield
-#field3d = nmutils.utils.propagateNearfield(Sprobe.data[0], g.psize, -100E-9, g.energy)
+#field_propagated = nmutils.utils.propagateNearfield(Sprobe.data[0], g.psize, -100E-9, g.energy)
 
 # prepare in 3d
 # This will also resample the probe to the Bragg geometry g with the reolution of g!
@@ -1153,6 +1153,11 @@ plt.setp(ax[1].xaxis.get_majorticklabels(), rotation=70)
 plt.tight_layout()
 plt.draw()
 
+# save the central projection
+#plot2drecons(np.fliplr(S_true_cart.data[0][xcut+5].T), S_true_cart.data[0][xcut].T, [-2.8849337617200645,
+# 2.8715154651539248,
+# -1.4321168817112304,
+# 1.418856540213904], r'C:\Users\Sanna', save=True)
 
 #%%
 #%%
@@ -1163,7 +1168,13 @@ plt.draw()
 algorithm = 'PIE'
 
 
-projection = int(loaded_probeView.shape[0]/2          +5    +5  +5     +5)
+# -0.2
+#bragg     done
+# *0.2 de  done
+# 0.4 deg done   (51)
+# 0.6 deg done
+
+projection = int(loaded_probeView.shape[0]/2 -10)
 
 
 print('Start reconstruction')

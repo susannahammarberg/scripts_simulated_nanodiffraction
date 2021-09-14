@@ -18,18 +18,17 @@ matplotlib.use( 'Qt5agg' )
 
 #%%
 
-date_saved = 20210910
-projection = 31 +5 
+date_saved = 20210913
+projection = 31+30 
 itstr = 'iter100' 
 
-save = False
+save = True
 
 openpath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\recons\%s_projection%i'%(date_saved,projection)
 
-savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\plots\%s_projection%i'%(date_saved,projection)
+savepath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\plots\%s_projection%i_%s'%(date_saved,projection,itstr)
 
 probe = np.load(openpath + '\\' + 'probe_%s.npy'%itstr) 
-
 obj = np.load(openpath + '\\'  + 'object_%s.npy'%itstr, allow_pickle=True) 
 x = np.squeeze(np.load(openpath + '\\' + 'x_%s.npy'%itstr)) 
 y = np.squeeze(np.load(openpath + '\\' + 'y_%s.npy'%itstr)) 
@@ -37,9 +36,6 @@ z = np.squeeze(np.load(openpath + '\\' + 'z_%s.npy'%itstr))
 #errors = np.load(openpath+ '\\errors.npy')
 ferrors = np.load(openpath+ '\\ferrors.npy')
 
-plt.figure()
-plt.plot(errors,'blue')
-plt.plot(abs(ferrors),'red')
 
 #TODO which coordinate, x,y,z?
 psize = x[1,0,0]-x[0,0,0]
@@ -53,6 +49,10 @@ if save == True:
         print('new folder in this savepath was created')
 
 
-plot2drecons(obj.T, probe, extent, savepath, save)
+plot2drecons(np.fliplr(obj.T), probe, extent, savepath, save)
+
+#plt.figure()
+#plt.plot(errors,'blue')
+#plt.plot(abs(ferrors),'red')
 
     
