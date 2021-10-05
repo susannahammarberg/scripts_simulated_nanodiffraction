@@ -354,7 +354,7 @@ del file1
 # pos chi rotates counter clockwise around X
 # pos phi rotates counter clockwise around Z
 # pos psi rotates counter clockwise around Y  - it is the same as the theta motion
-coord_rot = rotate_data(raw_data, chi=180 , phi=0 , psi=0)
+coord_rot = rotate_data(raw_data, chi=180 , phi=0 , psi=180)
 
 
 #%%
@@ -445,8 +445,8 @@ def plot_strain():
     plt.colorbar(orientation='horizontal')
     
     plt.figure()    
-    plt.imshow(100*strain_dwdz,cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
-    #plt.imshow(100*strain_dwdz[1],cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
+    #plt.imshow(100*strain_dwdz,cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
+    plt.imshow(100*strain_dwdz[1],cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
     plt.title('Strain calc with np.gradient [%]')
     #plt.title('Strain calc with np.diff [%]')
     plt.xlabel('z [um]')
@@ -471,7 +471,7 @@ def plot_strain():
     print( np.nanmax(np.gradient(interpol_data)[1]))
     print( np.nanmin(np.gradient(interpol_data)[1]))
     
-#plot_strain()
+plot_strain()
 
 
 #%%
@@ -761,7 +761,7 @@ elif choise == 'real2020':
     loaded_profile = np.rot90(loaded_profile,3)
     # save a psize, shape and the array data in the contaioner
     Cprobe = ptypy.core.Container(data_dims=2, data_type='complex128')
-    #TODO this is pixel size in the transmission system. Should convert it to Bragg system?
+    #TKNowthat: this is pixel size in the transmission system. Should convert it to Bragg system? No,
     # it is resampled to bragg geometry when you prepare it in 3d! 
 
     Sprobe = Cprobe.new_storage(psize=[5.96673929e-08, 5.96673929e-08], shape=(1,128,128))
@@ -926,8 +926,13 @@ pr_shape = (Npos,)+ tuple(g.shape)
 
 # Calculate diffraction patterns by using the geometry's propagator. all in 3d
 # todo is this OK lam factor?
-lam_factor =  nbr_photons*25   # higher number (less total intensity/signal)
-lam_factor =  2000000
+#lam_factor =  nbr_photons*25   # higher number (less total intensity/signal)
+
+lam_factor =  nbr_photons*25
+# det här verkar va liiite högt
+
+#lam_factor =  2000000
+
 diff2 = []
 print( 'calculating diffraction data')
 for v in views:
@@ -939,13 +944,14 @@ for v in views:
     #diff2.append(np.abs( prop_exit_wave)**2) #I used this 2/11/2020 but i guess it doesng matter?
     
 #    # with noise
-#    diff2.append(np.array(np.random.poisson(np.real( prop_exit_wave*prop_exit_wave.conj() )/lam_factor),float)) #this is actallu real but data type does not change
-#        
+    #diff2.append(np.array(np.random.poisson(np.real( prop_exit_wave*prop_exit_wave.conj() )/lam_factor),float)) #this is actallu real but data type does not change
+        
 
 
 #diff3.fill(np.array(diff2))
-plt.figure()
-plt.imshow(diff2[200][25],cmap='jet')
+#plt.figure()
+#plt.imshow(diff2[1][31],cmap='jet');plt.colorbar()
+
 #del diff2
 del (exit_wave,prop_exit_wave)
 
@@ -961,15 +967,6 @@ del (exit_wave,prop_exit_wave)
 #matplotlib.use( 'agg' )
 
 #del diff, zz, xx, yy
-
-## save central rotation from all positions
-#import PIL.Image as im
-#for i in range(0,len(diff2),1):
-#    print( i)
-#    ima = im.fromarray(diff2[i][int(diff2[0].shape[0]/2)])
-##    ima.save(r'C:\Users\Susanna\Documents\GitHub\simulated_nanodiffraction\savefig\real_probe_diffpatterns\pos%ddate_str.tif'%i)
-#
-
 
 #---------------------------------------------------------------------
 #%%
@@ -1000,33 +997,35 @@ del (exit_wave,prop_exit_wave)
 #%%
 # plot object and diffraction pattern at the same time. Wrong axes here!?!?
 #----------------------------------
-#
-#plot_view = 0
-##357#Npos/2 #which view to plot
-#factor = 1E6
-#rec_fact = 1E-10
-##fig = u.plot_storage(pr, 0)
-#plt.figure()# extent guide: extent : scalars (left, right, bottom, top)
-#plt.suptitle('Final diffraction pattern using object and probe', fontsize=15)
-#xcut = int(views[0].shape[0]/2) # which y-z-cut to plot
-#plt.subplot(221)
-#plt.imshow(np.abs(views[plot_view].data[xcut]), cmap = 'jet', extent = [factor*yy_vgrid.min(),factor*yy_vgrid.max(), factor*zz_vgrid.min(), factor*zz_vgrid.max()])
-#plt.title('One views object abs data')
-#plt.xlabel('$r_1$ [$\mathrm{\mu m}$]'); plt.ylabel('$r_2$ [$\mathrm{\mu m}$]')
-#
-#plt.subplot(222)
-#plt.imshow((abs(loaded_probeView.data[xcut ,:,:])),extent = [factor*yy_vgrid.min(),factor*yy_vgrid.max(), factor*zz_vgrid.min(), factor*zz_vgrid.max()])# extent=[-factor*Sloaded_probe_3d.shape[3]/2*Sloaded_probe_3d.psize[2], factor*Sloaded_probe_3d.shape[3]/2*Sloaded_probe_3d.psize[2], -factor*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1],factor*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1]])
-#plt.title('One views probe abs data')
-#plt.xlabel('$r_1$ [$\mathrm{\mu m}$]'); plt.ylabel('$r_2$ [$\mathrm{\mu m}$]')
-#
-#plt.subplot(223)
-#plt.title('Same view\'s diffraction pattern')
-#plt.imshow(diff2[plot_view][xcut].T , extent = [ -(g.dq1*g.shape[1]/2 )*rec_fact, g.dq1*g.shape[1]/2*rec_fact, -g.dq2*g.shape[2]/2*rec_fact, g.dq2*g.shape[2]/2*rec_fact], interpolation='none',cmap='jet')
-#plt.xlabel('$q_1$ [$\mathrm{\AA^{-1}}$]'); plt.ylabel('$q_2$ [$\mathrm{\AA^{-1}}$]'); plt.colorbar()#$10^6$ 
-#plt.tight_layout()
 
-#plt.savefig('aaa')
 
+factor = 1E6
+rec_fact = 1E-10
+
+for plot_view in range(0,len(diff2),50):
+    plt.figure()# extent guide: extent : scalars (left, right, bottom, top)
+    plt.suptitle('Final diffraction pattern using object and probe', fontsize=15)
+    xcut = int(views[0].shape[0]/2) # which y-z-cut to plot
+    plt.subplot(221)
+    plt.imshow(np.abs(views[plot_view].data[xcut]), cmap = 'jet', extent = [factor*yy_vgrid.min(),factor*yy_vgrid.max(), factor*zz_vgrid.min(), factor*zz_vgrid.max()])
+    plt.title('One views object abs data')
+    plt.xlabel(r'$r_1$ [$\mathrm{\mu m}$]'); plt.ylabel(r'$r_2$ [$\mathrm{\mu m}$]')
+    
+    plt.subplot(222)
+    plt.imshow((abs(loaded_probeView.data[xcut ,:,:])),extent = [factor*yy_vgrid.min(),factor*yy_vgrid.max(), factor*zz_vgrid.min(), factor*zz_vgrid.max()])# extent=[-factor*Sloaded_probe_3d.shape[3]/2*Sloaded_probe_3d.psize[2], factor*Sloaded_probe_3d.shape[3]/2*Sloaded_probe_3d.psize[2], -factor*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1],factor*Sloaded_probe_3d.shape[2]/2*Sloaded_probe_3d.psize[1]])
+    plt.title('One views probe abs data')
+    plt.xlabel(r'$r_1$ [$\mathrm{\mu m}$]'); plt.ylabel(r'$r_2$ [$\mathrm{\mu m}$]')
+    
+    plt.subplot(223)
+    plt.title('Same view\'s diffraction pattern')
+    plt.imshow(diff2[plot_view][xcut].T , extent = [ -(g.dq1*g.shape[1]/2 )*rec_fact, g.dq1*g.shape[1]/2*rec_fact, -g.dq2*g.shape[2]/2*rec_fact, g.dq2*g.shape[2]/2*rec_fact], interpolation='none',cmap='jet')
+    plt.xlabel(r'$q_1$ [$\mathrm{\AA^{-1}}$]'); plt.ylabel(r'$q_2$ [$\mathrm{\AA^{-1}}$]'); plt.colorbar()#$10^6$ 
+    plt.tight_layout()
+    
+    
+    plt.savefig(r'C:\Users\Sanna\Documents\Simulations\save_simulation\diffraction\diff%d'%plot_view)
+
+#%%
 # compare the cuts to 2d diffraction patterns
 #prop_exitwave_2d = g.propagator.fw( np.array(views[plot_view].data[xcut]*loaded_probeView.data[xcut ,:,:]))
 #diff_2d = np.array(np.random.poisson(np.real( prop_exitwave_2d*prop_exitwave_2d.conj() )/lam_factor), float) 
@@ -1037,7 +1036,7 @@ del (exit_wave,prop_exit_wave)
 #plt.imshow(diff_2d.T, extent = [-g.dq1*g.shape[1]/2*rec_fact, g.dq1*g.shape[1]/2*rec_fact,-g.dq2*g.shape[2]/2*rec_fact, g.dq2*g.shape[2]/2*rec_fact ], interpolation='none',cmap='jet')
 #plt.xlabel('$q_1$ [$\AA^{-1}$]'); plt.ylabel('$q_2$ [$\AA^{-1}$]')#; plt.colorbar()#$10^6$ 
 #plt.tight_layout()
-
+#%%
 
 def make_finite(matrix):
     mask = np.isinf(matrix)

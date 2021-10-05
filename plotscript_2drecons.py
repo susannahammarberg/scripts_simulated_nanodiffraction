@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 #from ptypy.core import View, Container, Storage, Base
 import os
 import sys
-sys.path.append(r"C:\Users\Sanna\Documents\Beamtime\NanoMAX_May2020\scripts")
+sys.path.append(r"C:\Users\Sanna\Documents\Beamtime\NanoMAX_May2020\scripts_NM2020")
 from plotPtypyResults import plot2drecons
 
 import matplotlib
@@ -22,7 +22,7 @@ date_saved = 20210913
 projection = 31+30 
 itstr = 'iter100' 
 
-save = True
+save = False
 
 openpath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\recons\%s_projection%i'%(date_saved,projection)
 
@@ -49,6 +49,7 @@ if save == True:
         print('new folder in this savepath was created')
 
 
+plt.close('all')
 plot2drecons(np.fliplr(obj.T), probe, extent, savepath, save)
 
 #plt.figure()
