@@ -92,7 +92,7 @@ matplotlib.use( 'Qt5agg' )
 #InP:10.91  GaInP: 11.09  #2017
 
 # Real 2020
-g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(62, 170, 170), energy=10.0, distance=1.0, theta_bragg=8.8, propagation = "farfield")  
+g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(62, 256, 256), energy=10.0, distance=1.0, theta_bragg=8.8, propagation = "farfield")  
 
 #REAl 2017
 #g = ptypy.core.geometry_bragg.Geo_Bragg(psize=(2*1E-2, 55*1E-6, 55*1E-6), shape=(51, 151, 151), energy=9.49, distance=1.149, theta_bragg=10.91, propagation = "farfield")  
@@ -420,9 +420,42 @@ strain_dwdz = np.gradient(displacement_slice , dz)
 
 strain_dwdz_NWlength = np.gradient(displacement_slice_NWlength,dz)
 
+# test because i am condused with orientations
+displacement_temp = (interpol_data[int(g.shape[0]/2)])
+strain_temp = np.gradient(displacement_temp , dz)
+strain_temp_rot = np.gradient(np.rot90(displacement_temp,1) , dz)
+
+#plt.figure()
+#plt.imshow(displacement_temp, cmap='jet')
+#
+#plt.figure()
+#plt.imshow(100*strain_temp[0], cmap='RdBu_r',vmin=-0.6,vmax=0.6)
+#plt.colorbar()
+#
+#plt.figure()
+#plt.imshow(np.rot90(100*strain_temp[0],1), cmap='RdBu_r',vmin=-0.6,vmax=0.6)
+#plt.colorbar()
+#
+##rot before calculation strain?
+#plt.figure()
+#plt.imshow(displacement_temp, cmap='jet')
+#
+#plt.figure()
+#plt.imshow(np.rot90(displacement_temp,1), cmap='jet')
+#
+#plt.figure()
+#plt.imshow(100*strain_temp_rot[1], cmap='RdBu_r',vmin=-0.6,vmax=0.6)
+#plt.colorbar()
+#
+
+
+#test2
+
 #-----------------------------------------------------
 # plot the strain
 #-----------------------------------------------------
+#%%
+
 def plot_strain():
     plt.figure()
     plt.title('Interpolated data')
@@ -446,7 +479,7 @@ def plot_strain():
     
     plt.figure()    
     #plt.imshow(100*strain_dwdz,cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
-    plt.imshow(100*strain_dwdz[1],cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]])
+    plt.imshow(100*strain_dwdz[1],cmap='RdBu_r', origin='lower',interpolation='none',extent=[0,dz2*1E6*shape5[1],0,dy2*1E6*shape5[0]],vmin=-0.6,vmax=0.6)
     plt.title('Strain calc with np.gradient [%]')
     #plt.title('Strain calc with np.diff [%]')
     plt.xlabel('z [um]')
@@ -471,7 +504,7 @@ def plot_strain():
     print( np.nanmax(np.gradient(interpol_data)[1]))
     print( np.nanmin(np.gradient(interpol_data)[1]))
     
-plot_strain()
+#plot_strain()
 
 
 #%%
@@ -940,11 +973,11 @@ for v in views:
     exit_wave = v.data * loaded_probeView.data 
     prop_exit_wave = g.propagator.fw(exit_wave)
     # without noise
-    diff2.append(np.array((np.real( prop_exit_wave*prop_exit_wave.conj() )),float)) #this is actallu real but data type does not change
+    #diff2.append(np.array((np.real( prop_exit_wave*prop_exit_wave.conj() )),float)) #this is actallu real but data type does not change
     #diff2.append(np.abs( prop_exit_wave)**2) #I used this 2/11/2020 but i guess it doesng matter?
     
 #    # with noise
-    #diff2.append(np.array(np.random.poisson(np.real( prop_exit_wave*prop_exit_wave.conj() )/lam_factor),float)) #this is actallu real but data type does not change
+    diff2.append(np.array(np.random.poisson(np.real( prop_exit_wave*prop_exit_wave.conj() )/lam_factor),float)) #this is actallu real but data type does not change
         
 
 
@@ -1023,7 +1056,7 @@ for plot_view in range(0,len(diff2),50):
     plt.tight_layout()
     
     
-    plt.savefig(r'C:\Users\Sanna\Documents\Simulations\save_simulation\diffraction\diff%d'%plot_view)
+    #plt.savefig(r'C:\Users\Sanna\Documents\Simulations\save_simulation\diffraction\noise_free\diff%d'%plot_view)
 
 #%%
 # compare the cuts to 2d diffraction patterns
@@ -1173,7 +1206,7 @@ algorithm = 'PIE'
 # 0.4 deg done   (51)
 # 0.6 deg done
 
-projection = int(loaded_probeView.shape[0]/2 -10)
+projection = int(loaded_probeView.shape[0]/2)
 
 
 print('Start reconstruction')
@@ -1297,7 +1330,7 @@ np.save(savepath + '\\ferrors', ferrors)
 for kk, store in enumerate(storage_save):
     
     iter_plotting = save_iter_interval*(kk+1)
-    print('iteration: ',iter_plotting )
+    print('plot iteration: ',iter_plotting )
     
     #save as np files and plot
     S_cart = g.coordinate_shift(store, input_space='real', input_system='natural', keep_dims=False)

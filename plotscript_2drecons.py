@@ -18,11 +18,11 @@ matplotlib.use( 'Qt5agg' )
 
 #%%
 
-date_saved = 20210913
-projection = 31+30 
+date_saved = 20211005
+projection = 61
 itstr = 'iter100' 
 
-save = False
+save = True
 
 openpath = r'C:\Users\Sanna\Documents\Simulations\save_simulation\recons\%s_projection%i'%(date_saved,projection)
 
@@ -50,7 +50,7 @@ if save == True:
 
 
 plt.close('all')
-plot2drecons(np.fliplr(obj.T), probe, extent, savepath, save)
+plot2drecons((np.rot90(obj,3)), probe, extent, savepath, save)#TODO signflip=true
 
 #plt.figure()
 #plt.plot(errors,'blue')
