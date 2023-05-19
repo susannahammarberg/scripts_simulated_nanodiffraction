@@ -22,7 +22,7 @@ from scipy import misc
 plt.close("all") # close all plotting windows
 
 
-#displacement u 
+
 a_WZ = 5.93E-10   #WZ lattice constant
 # 
 d = a_WZ / np.sqrt(4)
@@ -39,9 +39,9 @@ ny = 60
 
 obj = np.zeros((Ny,Nx),dtype=complex)
 # give obj amplitude
-obj[ Ny/2 - ny/2: Ny/2 + ny/2, Nx/2 - nx/2: Nx/2 + nx/2 ] = 1
+obj[ Ny//2 - ny//2: Ny//2 + ny//2, Nx//2 - nx//2: Nx//2 + nx//2 ] = 1
 # give obj phase of right half of object   (arb phase 1.5pi)
-obj[ Ny/2 - ny/2: Ny/2 + ny/2, Nx/2:Nx/2 + nx/2 ]=1*np.exp((1j*2*np.pi*u/d)) 
+obj[ Ny//2 - ny//2: Ny//2 + ny//2, Nx//2:Nx//2 + nx//2 ]=1*np.exp((1j*2*np.pi*u/d)) 
 
 plt.figure()
 plt.subplot(121)
